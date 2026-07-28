@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pig Farm SPA Demo</title>
+  <style>
+    :root {
+      --bg: #18222f;
+      --panel: #0f1720;
+      --panel-border: #33485f;
+      --text: #eef4ff;
+      --muted: #b8c6d9;
+      --button: #355c7d;
+      --button-alt: #51677e;
+      --danger: #a94f4a;
+      --accent: #ffd166;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, #314b67 0%, #1f2f40 35%, #121a23 100%);
+    }
+
+    .wrapper {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .topbar strong {
+      font-size: 22px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      background: rgba(16, 25, 35, 0.9);
+      border: 1px solid #3a5068;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) 320px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      border: 3px solid #223244;
+      background: #9ad4ff;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+    }
+
+    .panel {
+      background: rgba(12, 18, 26, 0.95);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+    }
+
+    button,
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--button);
+    }
+
+    button.secondary {
+      background: var(--button-alt);
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    button.active {
+      outline: 3px solid var(--accent);
+      background: #2a9d8f;
+    }
+
+    code {
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .legend {
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 12px 0;
+      color: #d5e0ef;
+    }
+
+    .legend ul {
+      padding-left: 18px;
+      margin: 8px 0 0;
+    }
+
+    .stats {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .card {
+      background: #15202c;
+      border: 1px solid #2b4156;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    meter {
+      width: 100%;
+      height: 14px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="topbar">
+      <div>
+        <strong>Pig Farm SPA Demo</strong>
+        <div class="small">Plain HTML/CSS/JS. GitHub Pages にそのまま置けます。</div>
+      </div>
+
+      <div class="badges">
+        <div class="badge" id="gameClock">Day 1 08:00</div>
+        <div class="badge" id="worldInfo">Food: 0 | Poop: 0</div>
+        <div class="badge" id="modeInfo">Mode: Place Food</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div>
+        <canvas id="gameCanvas" width="960" height="600"></canvas>
+      </div>
+
+      <div class="panel">
+        <button id="foodModeBtn" class="active">Place Food Mode</button>
+        <button id="cleanModeBtn" class="secondary">Clean Poop Mode</button>
+        <button id="cleanAllBtn" class="danger">Clean All Poop</button>
+
+        <label class="small" for="speedSelect">Simulation speed</label>
+        <select id="speedSelect">
+          <option value="1">1x</option>
+          <option value="5">5x</option>
+          <option value="20" selected>20x</option>
+          <option value="60">60x</option>
+        </select>
+
+        <div class="legend">
+          <ul>
+            <li>Click inside the farm to drop food.</li>
+            <li>Switch to clean mode, then click poop to remove it.</li>
+            <li>Pigs wander when idle, chase food when hungry, and poop 30-120 game minutes after eating.</li>
+            <li>Frequent feeding gives a growth bonus, so pigs grow faster.</li>
+          </ul>
+        </div>
+
+        <div class="small">
+          Demo note: 時間は確認しやすいように加速しています。<br />
+          本当にリアル時間にしたい場合は、
+          <code>BASE_MINUTES_PER_REAL_SECOND</code> を <code>1/60</code> に変更してください。
+        </div>
+
+        <div id="stats" class="stats"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const gameClockEl = document.getElementById("gameClock");
+      const worldInfoEl = document.getElementById("worldInfo");
+      const modeInfoEl = document.getElementById("modeInfo");
+      const statsEl = document.getElementById("stats");
+
+      const foodModeBtn = document.getElementById("foodModeBtn");
+      const cleanModeBtn = document.getElementById("cleanModeBtn");
+      const cleanAllBtn = document.getElementById("cleanAllBtn");
+      const speedSelect = document.getElementById("speedSelect");
+
+      const farm = { x: 180, y: 80, w: 730, h: 460 };
+      const house = { x: 40, y: 180, w: 110, h: 170 };
+
+      // 1 real second = 1 game minute
+      // If you want real-time digestion later, use 1/60.
+      const BASE_MINUTES_PER_REAL_SECOND = 1;
+
+      const NAMES = ["Pinky", "Momo", "Choco"];
+
+      const world = {
+        minute: 8 * 60,
+        pigs: [],
+        foods: [],
+        poops: [],
+        mode: "food",
+        speedMultiplier: Number(speedSelect.value)
+      };
+
+      let nextPigId = 1;
+      let lastTs = performance.now();
+
+      function rand(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function distance(ax, ay, bx, by) {
+        return Math.hypot(ax - bx, ay - by);
+      }
+
+      function pointInRect(x, y, rect) {
+        return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+      }
+
+      function pick(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      function formatClock(totalMinutes) {
+        const day = Math.floor(totalMinutes / (24 * 60)) + 1;
+        const dayMinutes = Math.floor(totalMinutes % (24 * 60));
+        const hh = String(Math.floor(dayMinutes / 60)).padStart(2, "0");
+        const mm = String(dayMinutes % 60).padStart(2, "0");
+        return `Day ${day} ${hh}:${mm}`;
+      }
+
+      function getGrowthStage(pig) {
+        const growthScore = pig.ageMinutes + pig.growthBonus;
+
+        if (growthScore < 120) return { name: "Baby", size: 15, speed: 34 };
+        if (growthScore < 320) return { name: "Young", size: 20, speed: 38 };
+        if (growthScore < 650) return { name: "Adult", size: 26, speed: 35 };
+        if (growthScore < 980) return { name: "Old", size: 30, speed: 28 };
+        return { name: "Old Old", size: 34, speed: 22 };
+      }
+
+      const grassBlades = Array.from({ length: 150 }, () => ({
+        x: rand(farm.x + 6, farm.x + farm.w - 6),
+        y: rand(farm.y + 8, farm.y + farm.h - 8),
+        h: rand(6, 12),
+        color: Math.random() > 0.5 ? "#6da94e" : "#80be58"
+      }));
+
+      function createPig(name, x, y) {
+        return {
+          id: nextPigId++,
+          name,
+          x,
+          y,
+          targetX: x,
+          targetY: y,
+          vx: 0,
+          vy: 0,
+          wanderTimer: 0,
+          hunger: rand(10, 35),
+          ageMinutes: 0,
+          growthBonus: 0,
+          feedCount: 0,
+          lastFedAt: -99999,
+          digestion: [],
+          color: pick(["#f7b4c7", "#ffc1d6", "#ffadc2"]),
+          stage: "Baby",
+          size: 15,
+          moveSpeed: 34
+        };
+      }
+
+      function spawnPig(name) {
+        world.pigs.push(
+          createPig(
+            name,
+            rand(farm.x + 50, farm.x + farm.w - 50),
+            rand(farm.y + 50, farm.y + farm.h - 50)
+          )
+        );
+      }
+
+      function setMode(mode) {
+        world.mode = mode;
+        foodModeBtn.classList.toggle("active", mode === "food");
+        cleanModeBtn.classList.toggle("active", mode === "clean");
+        modeInfoEl.textContent = `Mode: ${mode === "food" ? "Place Food" : "Clean Poop"}`;
+        canvas.style.cursor = mode === "food" ? "copy" : "crosshair";
+      }
+
+      function dropFood(x, y) {
+        world.foods.push({
+          x,
+          y,
+          r: 6 + Math.random() * 2
+        });
+      }
+
+      function createPoopNearPig(pig) {
+        const angle = rand(0, Math.PI * 2);
+        const gap = pig.size + 10;
+
+        world.poops.push({
+          x: clamp(pig.x + Math.cos(angle) * gap, farm.x + 12, farm.x + farm.w - 12),
+          y: clamp(pig.y + Math.sin(angle) * gap, farm.y + 12, farm.y + farm.h - 12),
+          size: rand(8, 12),
+          createdAt: world.minute
+        });
+      }
+
+      function feedPig(pig) {
+        const sinceLastFeed = world.minute - pig.lastFedAt;
+
+        pig.hunger = Math.max(0, pig.hunger - 55);
+        pig.feedCount += 1;
+
+        // Basic growth boost
+        pig.growthBonus += 24;
+
+        // Extra growth if fed often
+        if (sinceLastFeed <= 90) {
+          pig.growthBonus += 36;
+        }
+
+        pig.lastFedAt = world.minute;
+
+        // Poop after 30-120 game minutes
+        pig.digestion.push(world.minute + rand(30, 120));
+      }
+
+      function nearestFood(pig) {
+        let best = null;
+        let bestDist = Infinity;
+
+        for (const food of world.foods) {
+          const d = distance(pig.x, pig.y, food.x, food.y);
+          if (d < bestDist) {
+            bestDist = d;
+            best = food;
+          }
+        }
+
+        return best ? { food: best, dist: bestDist } : null;
+      }
+
+      function chooseWanderTarget(pig) {
+        pig.targetX = rand(farm.x + 30, farm.x + farm.w - 30);
+        pig.targetY = rand(farm.y + 30, farm.y + farm.h - 30);
+        pig.wanderTimer = rand(1.5, 4.5);
+      }
+
+      function updatePig(pig, dt, gameDt) {
+        pig.ageMinutes += gameDt;
+        pig.hunger = clamp(pig.hunger + gameDt * 0.12, 0, 100);
+
+        const stage = getGrowthStage(pig);
+        pig.stage = stage.name;
+        pig.size = stage.size;
+        pig.moveSpeed = stage.speed;
+
+        // Check poop timers
+        const remainingDigest = [];
+        for (const dueAt of pig.digestion) {
+          if (world.minute >= dueAt) {
+            createPoopNearPig(pig);
+          } else {
+            remainingDigest.push(dueAt);
+          }
+        }
+        pig.digestion = remainingDigest;
+
+        const targetFood = nearestFood(pig);
+        const hungry = pig.hunger >= 22;
+
+        if (targetFood && hungry) {
+          pig.targetX = targetFood.food.x;
+          pig.targetY = targetFood.food.y;
+        } else {
+          pig.wanderTimer -= dt;
+          if (pig.wanderTimer <= 0 || distance(pig.x, pig.y, pig.targetX, pig.targetY) < 12) {
+            chooseWanderTarget(pig);
+          }
+        }
+
+        const dx = pig.targetX - pig.x;
+        const dy = pig.targetY - pig.y;
+        const len = Math.hypot(dx, dy);
+
+        if (len > 1) {
+          pig.vx = (dx / len) * pig.moveSpeed;
+          pig.vy = (dy / len) * pig.moveSpeed;
+          pig.x += pig.vx * dt;
+          pig.y += pig.vy * dt;
+        } else {
+          pig.vx *= 0.9;
+          pig.vy *= 0.9;
+        }
+
+        pig.x = clamp(pig.x, farm.x + pig.size, farm.x + farm.w - pig.size);
+        pig.y = clamp(pig.y, farm.y + pig.size, farm.y + farm.h - pig.size);
+
+        for (let i = world.foods.length - 1; i >= 0; i--) {
+          const food = world.foods[i];
+          if (distance(pig.x, pig.y, food.x, food.y) <= pig.size + food.r + 4) {
+            world.foods.splice(i, 1);
+            feedPig(pig);
+            break;
+          }
+        }
+      }
+
+      function update(dt) {
+        const gameDt = dt * BASE_MINUTES_PER_REAL_SECOND * world.speedMultiplier;
+        world.minute += gameDt;
+
+        for (const pig of world.pigs) {
+          updatePig(pig, dt, gameDt);
+        }
+
+        gameClockEl.textContent = formatClock(world.minute);
+        worldInfoEl.textContent = `Food: ${world.foods.length} | Poop: ${world.poops.length}`;
+        renderStats();
+      }
+
+      function drawFence(rect) {
+        ctx.strokeStyle = "#9a6b3b";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+
+        ctx.fillStyle = "#b9874a";
+
+        for (let x = rect.x; x <= rect.x + rect.w; x += 36) {
+          ctx.fillRect(x - 3, rect.y - 10, 6, 20);
+          ctx.fillRect(x - 3, rect.y + rect.h - 10, 6, 20);
+        }
+
+        for (let y = rect.y; y <= rect.y + rect.h; y += 36) {
+          ctx.fillRect(rect.x - 10, y - 3, 20, 6);
+          ctx.fillRect(rect.x + rect.w - 10, y - 3, 20, 6);
+        }
+      }
+
+      function drawFarmBackground() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const sky = ctx.createLinearGradient(0, 0, 0, 220);
+        sky.addColorStop(0, "#7fc8ff");
+        sky.addColorStop(1, "#caecff");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#8fcb69";
+        ctx.fillRect(0, 230, canvas.width, canvas.height - 230);
+
+        ctx.fillStyle = "#75b254";
+        ctx.fillRect(farm.x, farm.y, farm.w, farm.h);
+
+        for (const blade of grassBlades) {
+          ctx.fillStyle = blade.color;
+          ctx.fillRect(blade.x, blade.y, 3, blade.h);
+        }
+
+        drawFence(farm);
+
+        // Pig house
+        ctx.fillStyle = "#804d2b";
+        ctx.fillRect(house.x, house.y, house.w, house.h);
+
+        ctx.beginPath();
+        ctx.moveTo(house.x - 10, house.y);
+        ctx.lineTo(house.x + house.w / 2, house.y - 55);
+        ctx.lineTo(house.x + house.w + 10, house.y);
+        ctx.closePath();
+        ctx.fillStyle = "#b24f3d";
+        ctx.fill();
+
+        ctx.fillStyle = "#53311a";
+        ctx.fillRect(house.x + 35, house.y + 75, 40, 95);
+
+        ctx.fillStyle = "#f5e4c2";
+        ctx.font = "bold 16px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("Pig House", house.x + 8, house.y + house.h + 24);
+      }
+
+      function drawFood(food) {
+        ctx.fillStyle = "#f8c146";
+        ctx.beginPath();
+        ctx.arc(food.x, food.y, food.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#d89a16";
+        ctx.beginPath();
+        ctx.arc(food.x - 2, food.y - 2, food.r * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawPoop(poop) {
+        ctx.fillStyle = "#5a3b21";
+        ctx.beginPath();
+        ctx.arc(poop.x - 4, poop.y + 3, poop.size * 0.6, 0, Math.PI * 2);
+        ctx.arc(poop.x + 3, poop.y + 2, poop.size * 0.52, 0, Math.PI * 2);
+        ctx.arc(poop.x, poop.y - 3, poop.size * 0.48, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawPig(pig) {
+        ctx.save();
+        ctx.translate(pig.x, pig.y);
+
+        const facing = pig.vx < -0.5 ? -1 : 1;
+        ctx.scale(facing, 1);
+
+        // Tail
+        ctx.strokeStyle = "#d988a7";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-pig.size * 1.1, -2);
+        ctx.quadraticCurveTo(-pig.size * 1.4, -8, -pig.size * 1.2, -14);
+        ctx.quadraticCurveTo(-pig.size * 1.0, -20, -pig.size * 0.9, -12);
+        ctx.stroke();
+
+        // Body
+        ctx.fillStyle = pig.color;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, pig.size * 1.2, pig.size * 0.82, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Legs
+        ctx.fillStyle = "#d784a4";
+        ctx.fillRect(-pig.size * 0.75, pig.size * 0.2, 4, pig.size * 0.75);
+        ctx.fillRect(-pig.size * 0.2, pig.size * 0.25, 4, pig.size * 0.75);
+        ctx.fillRect(pig.size * 0.35, pig.size * 0.25, 4, pig.size * 0.75);
+        ctx.fillRect(pig.size * 0.8, pig.size * 0.2, 4, pig.size * 0.75);
+
+        // Head
+        ctx.fillStyle = pig.color;
+        ctx.beginPath();
+        ctx.arc(pig.size * 1.05, -pig.size * 0.05, pig.size * 0.52, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ears
+        ctx.beginPath();
+        ctx.moveTo(pig.size * 0.85, -pig.size * 0.42);
+        ctx.lineTo(pig.size * 0.95, -pig.size * 0.95);
+        ctx.lineTo(pig.size * 1.2, -pig.size * 0.48);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(pig.size * 1.2, -pig.size * 0.35);
+        ctx.lineTo(pig.size * 1.5, -pig.size * 0.85);
+        ctx.lineTo(pig.size * 1.45, -pig.size * 0.2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Snout
+        ctx.fillStyle = "#ef9dbc";
+        ctx.beginPath();
+        ctx.ellipse(
+          pig.size * 1.45,
+          pig.size * 0.05,
+          pig.size * 0.34,
+          pig.size * 0.24,
+          0,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+
+        ctx.fillStyle = "#b25a77";
+        ctx.beginPath();
+        ctx.arc(pig.size * 1.37, pig.size * 0.05, pig.size * 0.05, 0, Math.PI * 2);
+        ctx.arc(pig.size * 1.53, pig.size * 0.05, pig.size * 0.05, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eye
+        ctx.fillStyle = "#222";
+        ctx.beginPath();
+        ctx.arc(pig.size * 1.18, -pig.size * 0.12, pig.size * 0.06, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+
+        // Label
+        ctx.fillStyle = "#102030";
+        ctx.font = "bold 13px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(`${pig.name} • ${pig.stage}`, pig.x, pig.y - pig.size - 14);
+      }
+
+      function renderStats() {
+        statsEl.innerHTML = world.pigs
+          .map((pig) => {
+            const nextPoop =
+              pig.digestion.length > 0
+                ? Math.max(
+                    0,
+                    Math.min(...pig.digestion.map((d) => d - world.minute))
+                  ).toFixed(0)
+                : "-";
+
+            return `
+              <div class="card">
+                <strong>${pig.name}</strong><br>
+                Stage: ${pig.stage}<br>
+                Age: ${pig.ageMinutes.toFixed(0)} game min<br>
+                Feed count: ${pig.feedCount}<br>
+                Next poop in: ${nextPoop === "-" ? "-" : `${nextPoop} game min`}<br>
+                Hunger
+                <meter min="0" max="100" low="25" high="70" optimum="0" value="${pig.hunger.toFixed(0)}"></meter>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      function render() {
+        drawFarmBackground();
+
+        for (const food of world.foods) drawFood(food);
+        for (const poop of world.poops) drawPoop(poop);
+        for (const pig of world.pigs) drawPig(pig);
+
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.fillRect(16, 16, 260, 66);
+
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "left";
+        ctx.font = "bold 18px sans-serif";
+        ctx.fillText("Pig Farm", 28, 40);
+
+        ctx.font = "14px sans-serif";
+        ctx.fillText(
+          `Click farm: ${world.mode === "food" ? "drop food" : "clean poop"}`,
+          28,
+          62
+        );
+      }
+
+      function gameLoop(ts) {
+        const dt = Math.min(0.05, (ts - lastTs) / 1000);
+        lastTs = ts;
+
+        update(dt);
+        render();
+
+        requestAnimationFrame(gameLoop);
+      }
+
+      canvas.addEventListener("click", (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+
+        if (!pointInRect(x, y, farm)) return;
+
+        if (world.mode === "food") {
+          dropFood(x, y);
+        } else {
+          for (let i = world.poops.length - 1; i >= 0; i--) {
+            if (distance(x, y, world.poops[i].x, world.poops[i].y) <= world.poops[i].size + 10) {
+              world.poops.splice(i, 1);
+              break;
+            }
+          }
+        }
+      });
+
+      foodModeBtn.addEventListener("click", () => setMode("food"));
+      cleanModeBtn.addEventListener("click", () => setMode("clean"));
+      cleanAllBtn.addEventListener("click", () => {
+        world.poops = [];
+      });
+
+      speedSelect.addEventListener("change", () => {
+        world.speedMultiplier = Number(speedSelect.value);
+      });
+
+      NAMES.forEach(spawnPig);
+      setMode("food");
+      requestAnimationFrame(gameLoop);
+    })();
+  </script>
+</body>
+</html>
