@@ -88,6 +88,15 @@
   const sprites = createSprites();
   let backgroundLayer = buildBackgroundLayer();
 
+  const pigImage = new Image();
+  pigImage.src = "./assets/pig_normal_adult.png";
+  pigImage.onload = () => {
+    render();
+  };
+  pigImage.onerror = () => {
+    console.error("Failed to load pig image: ./assets/pig_normal_adult.png");
+  };
+
   let lastAutoSaveAt = Date.now();
   let lastUiRefreshAt = 0;
   let openPanel = null;
@@ -1094,42 +1103,26 @@
   }
 
   function drawPig(pig) {
-    drawShadow(
-      pig.x,
-      pig.y + pig.size * 0.9,
-      pig.size * 1.05,
-      pig.size * 0.38,
-      "rgba(0,0,0,0.18)"
-    );
-
-    const stageIndex = STAGE_ORDER.indexOf(pig.stage);
-    const row = pig.variant * STAGE_ORDER.length + stageIndex;
-    const moving = Math.abs(pig.vx) + Math.abs(pig.vy) > 2;
-    const frame = moving
-      ? Math.floor((Date.now() / 140 + pig.animOffset) % 4)
-      : 0;
-
-    const fw = sprites.pig.frameW;
-    const fh = sprites.pig.frameH;
-    const sx = frame * fw;
-    const sy = row * fh;
-    const drawW = pig.size * 3.2;
-    const drawH = pig.size * 2.3;
-
+    drawShadow(pig.x, pig.y + pig.size * 0.4, pig.size * 1.05, pig.size * 0.35, "rgba(0,0,0,0.18)");
+    if (!pigImage.complete || !pigImage.naturalWidth) {return;}
+    const aspect = pigImage.naturalWidth / pigImage.naturalHeight;
+    // サイズを整数にする
+    const drawH = Math.round(pig.size * 2.4);
+    const drawW = Math.round(drawH * aspect);
+    // 位置も整数にする
+    const px = Math.round(pig.x);
+    const py = Math.round(pig.y);
     ctx.save();
-    ctx.translate(pig.x, pig.y);
-
-    const facing = pig.vx < -0.5 ? -1 : 1;
-    ctx.scale(facing, 1);
-
+    // pig だけ smoothing ON
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.translate(px, py); 
+    const facing = pig.vx < -0.5 ? 1 : -1; //移動方向で方向を検知
+    ctx.scale(facing, 1); //移動方向に合わせて画像を左右変転
     ctx.drawImage(
-      sprites.pig.canvas,
-      sx,
-      sy,
-      fw,
-      fh,
-      -drawW / 2,
-      -drawH * 0.62,
+      pigImage,
+      Math.round(-drawW / 2),
+      Math.round(-drawH * 0.7),
       drawW,
       drawH
     );
@@ -1140,13 +1133,13 @@
     ctx.font = "bold 12px sans-serif";
     ctx.textAlign = "center";
     const width = ctx.measureText(label).width + 12;
-    const labelX = pig.x - width / 2;
-    const labelY = pig.y - pig.size - 24;
+    const labelX = px - width / 2;
+    const labelY = py - pig.size - 24;
 
     ctx.fillStyle = "rgba(12, 26, 39, 0.82)";
     ctx.fillRect(labelX, labelY, width, 18);
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(label, pig.x, labelY + 13);
+    ctx.fillText(label, px, labelY + 13);
   }
 
   function buildBackgroundLayer() {
