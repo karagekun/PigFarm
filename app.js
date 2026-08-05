@@ -63,9 +63,12 @@
   ];
   const STAGE_ORDER = ["Baby", "Young", "Adult", "Old", "Old Old"];
 
-  const barn = { x: 28, y: 44, w: 150, h: 122 };
-  const house = { x: 48, y: 226, w: 112, h: 150 };
-  const farm = { x: 210, y: 92, w: 700, h: 430 };
+  //window is 960 x 600
+  const jimusho = { x: 28, y: 75, w: 233, h: 186 };
+  //const farm = { x: 210, y: 230, w: 700, h: 300 };
+  const farm = { x: 0, y: 230, w: 960, h: 370 };
+
+  const BACKGROUND_SPLIT_Y = 230;
 
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
@@ -86,16 +89,46 @@
   const closeCardBtn = document.getElementById("closeCardBtn");
 
   const sprites = createSprites();
-  let backgroundLayer = buildBackgroundLayer();
+  let backgroundLayer = null;
 
   const pigImage = new Image();
   pigImage.src = "./assets/pig_normal_adult.png";
-  pigImage.onload = () => {
+  pigImage.onload = () => {render()};
+  pigImage.onerror = () => {console.error("Failed to load pig image: ./assets/pig_normal_adult.png")};
+
+  const jimushoImage = new Image();
+  jimushoImage.src = "./assets/building_jimusho.png";
+  jimushoImage.onload = () => {
+    backgroundLayer = buildBackgroundLayer();
     render();
   };
-  pigImage.onerror = () => {
-    console.error("Failed to load pig image: ./assets/pig_normal_adult.png");
+  jimushoImage.onerror = () => {console.error("Failed to load image: ./assets/building_jimusho.png")};
+  
+  const skyImage = new Image();
+  skyImage.src = "./assets/bg_sky_normal.png";
+  skyImage.onload = () => {
+    backgroundLayer = buildBackgroundLayer();
+    render();
   };
+  skyImage.onerror = () => {console.error("Failed to load background image: ./assets/bg_sky_normal.png")};
+
+  const farmBgImage = new Image();
+  farmBgImage.src = "./assets/bg_grassland_normal.png";
+  farmBgImage.onload = () => {
+    backgroundLayer = buildBackgroundLayer();
+    render();
+  };
+  farmBgImage.onerror = () => {console.error("Failed to load background image: ./assets/bg_grassland_normal.png")};
+
+  const fenceImage = new Image();
+  fenceImage.src = "./assets/fence_bamboo.png";
+  fenceImage.onload = () => {
+    backgroundLayer = buildBackgroundLayer();
+    render();
+  };
+  fenceImage.onerror = () => {console.error("Failed to load image: ./assets/fence_bamboo.png")};
+
+  backgroundLayer = buildBackgroundLayer();
 
   let lastAutoSaveAt = Date.now();
   let lastUiRefreshAt = 0;
@@ -107,7 +140,7 @@
 
   const recoveredMs = syncToNow(true);
   if (!savedText) {
-    offlineInfo = "New farm created. Tap the barn and pig house to manage the farm.";
+    offlineInfo = "New farm created. Tap the office to manage the farm.";
   } else if (recoveredMs <= 2000) {
     offlineInfo = "Saved farm loaded. Offline progress is enabled.";
   }
@@ -695,7 +728,7 @@
     }
 
     if (stock <= 0) {
-      offlineInfo = `${food.name} is out of stock. Open the barn to buy more.`;
+      offlineInfo = `${food.name} is out of stock. Click the office to buy more.`;
       return false;
     }
 
@@ -750,13 +783,8 @@
     const x = (event.clientX - rect.left) * (canvas.width / rect.width);
     const y = (event.clientY - rect.top) * (canvas.height / rect.height);
 
-    if (pointInRect(x, y, barn)) {
-      togglePanel("barn");
-      return;
-    }
-
-    if (pointInRect(x, y, house)) {
-      togglePanel("house");
+    if (pointInRect(x, y, jimusho)) {
+      togglePanel("jimusho");
       return;
     }
 
@@ -833,20 +861,6 @@
   // UI rendering
   // -----------------------------------
   function updateHud() {
-    const selectedFood = FOOD_TYPES[world.selectedFoodType];
-    const mixStock = world.foodStock.mix || 0;
-    const pumpkinStock = world.foodStock.pumpkin || 0;
-    const rootStock = world.foodStock.root || 0;
-
-    moneyInfoEl.textContent = `Money: $${world.money}`;
-    selectedFoodInfoEl.textContent = `Selected Feed: ${selectedFood ? selectedFood.name : "--"}`;
-    stockInfoEl.textContent = `Stock: Mix ${mixStock} | Pumpkin ${pumpkinStock} | Roots ${rootStock}`;
-    worldInfoEl.textContent = `Pigs: ${world.pigs.length} | Poop: ${world.poops.length}`;
-    saveInfoEl.textContent = `Saved: ${formatRelative(world.savedAt)}`;
-
-    tapHintEl.textContent =
-      `Tap the barn to manage food, tap the pig house to manage pigs, tap poop to sell it for $${CONFIG.POOP_SELL_PRICE}, and tap the farm to place ${selectedFood ? selectedFood.name : "food"}.`;
-
     renderActiveCard();
   }
 
@@ -858,45 +872,11 @@
       return;
     }
 
-    if (openPanel === "house") {
-      cardTitleEl.textContent = "Pig House";
-      cardSubtitleEl.textContent = "See all pigs, buy pigs, and sell Adult or older pigs.";
-      cardBodyEl.innerHTML = renderHouseCardHtml();
-      return;
+    if (openPanel === "jimusho") {
+      cardTitleEl.textContent = "Farm Office";
+      cardSubtitleEl.textContent = "Check farm status, buy/sell food and pigs.";
+      cardBodyEl.innerHTML = renderJimushoCardHtml();
     }
-
-    if (openPanel === "barn") {
-      cardTitleEl.textContent = "Barn";
-      cardSubtitleEl.textContent = "Check food stock, buy food, and choose which food to feed.";
-      cardBodyEl.innerHTML = renderBarnCardHtml();
-    }
-  }
-
-  function renderHouseCardHtml() {
-    const buyPrice = getBuyPigPrice();
-    const buyDisabled =
-      world.money < buyPrice || world.pigs.length >= CONFIG.MAX_PIGS ? "disabled" : "";
-
-    return `
-      <div class="sheet-top">
-        <div class="summary-chip">Pigs: ${world.pigs.length}/${CONFIG.MAX_PIGS}</div>
-        <div class="summary-chip">Money: $${world.money}</div>
-        <div class="summary-chip">Buy price: $${buyPrice}</div>
-      </div>
-
-      <button class="full-btn" data-action="buy-pig" ${buyDisabled}>
-        Buy Pig (-$${buyPrice})
-      </button>
-
-      <p class="sheet-note">
-        Adult 以上の pig だけ売却できます。<br>
-        Status は real time で進み、ページを閉じていても次回アクセス時に追いつきます。
-      </p>
-
-      <div class="sheet-list">
-        ${world.pigs.map(renderHousePigRow).join("")}
-      </div>
-    `;
   }
 
   function renderHousePigRow(pig) {
@@ -953,29 +933,48 @@
       </div>
     `;
   }
-
-  function renderBarnCardHtml() {
+  function renderJimushoCardHtml() {
     const selectedFood = FOOD_TYPES[world.selectedFoodType];
+    const buyPrice = getBuyPigPrice();
+    const buyDisabled =
+      world.money < buyPrice || world.pigs.length >= CONFIG.MAX_PIGS ? "disabled" : "";
 
     return `
       <div class="sheet-top">
-        <div class="summary-chip">Selected: ${selectedFood.name}</div>
         <div class="summary-chip">Money: $${world.money}</div>
-        <div class="summary-chip">Total stock: ${getTotalFoodStock()}</div>
+        <div class="summary-chip">Pigs: ${world.pigs.length}/${CONFIG.MAX_PIGS}</div>
+        <div class="summary-chip">Poop: ${world.poops.length}</div>
+        <div class="summary-chip">Saved: ${formatRelative(world.savedAt)}</div>
       </div>
 
+      <div class="sheet-top">
+        <div class="summary-chip">Selected: ${selectedFood.name}</div>
+        <div class="summary-chip">Total stock: ${getTotalFoodStock()}</div>
+        <div class="summary-chip">Buy pig: $${buyPrice}</div>
+      </div>
+
+      <button class="full-btn" data-action="buy-pig" ${buyDisabled}>
+        Buy Pig (-$${buyPrice})
+      </button>
+
       <p class="sheet-note">
-        ここで food を選ぶと、farm をタップした時にその food を置きます。<br>
-        倉庫の在庫は real time 進行の farm state と一緒に保存されます。
+        ここで farm 全体を管理できます。<br>
+        food の購入 / 選択、pig の購入、Adult 以上の pig の売却ができます。
       </p>
 
+      <p class="sheet-note"><strong>Food</strong></p>
       <div class="sheet-list">
-        ${FOOD_IDS.map(renderBarnFoodRow).join("")}
+        ${FOOD_IDS.map(renderJimushoFoodRow).join("")}
+      </div>
+
+      <p class="sheet-note"><strong>Pigs</strong></p>
+      <div class="sheet-list">
+        ${world.pigs.map(renderHousePigRow).join("")}
       </div>
     `;
   }
 
-  function renderBarnFoodRow(foodId) {
+  function renderJimushoFoodRow(foodId) {
     const food = FOOD_TYPES[foodId];
     const isSelected = world.selectedFoodType === foodId;
     const buyDisabled = world.money < food.packCost ? "disabled" : "";
@@ -1042,10 +1041,8 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(backgroundLayer, 0, 0);
 
-    if (openPanel === "barn") {
-      drawBuildingHighlight(barn);
-    } else if (openPanel === "house") {
-      drawBuildingHighlight(house);
+    if (openPanel === "jimusho") {
+      drawBuildingHighlight(jimusho);
     }
 
     for (const food of world.foods) {
@@ -1059,24 +1056,6 @@
     for (const pig of world.pigs) {
       drawPig(pig);
     }
-
-    drawOverlayPanel();
-  }
-
-  function drawOverlayPanel() {
-    const selectedFood = FOOD_TYPES[world.selectedFoodType];
-
-    ctx.fillStyle = "rgba(8, 16, 24, 0.74)";
-    ctx.fillRect(16, 16, 350, 84);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.textAlign = "left";
-    ctx.font = "bold 18px sans-serif";
-    ctx.fillText("Pig Farm", 28, 40);
-
-    ctx.font = "14px sans-serif";
-    ctx.fillText(`Selected feed: ${selectedFood.name}`, 28, 62);
-    ctx.fillText(`Tap barn / pig house / poop / farm`, 28, 82);
   }
 
   function drawBuildingHighlight(rect) {
@@ -1094,7 +1073,6 @@
   function drawPoop(poop) {
     drawShadow(poop.x, poop.y + 7, 12, 5, "rgba(0,0,0,0.18)");
     drawTileSpriteCentered(ctx, sprites.tiles.ids.poop, poop.x, poop.y, 22);
-
     ctx.strokeStyle = "rgba(255,255,255,0.35)";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -1119,14 +1097,7 @@
     ctx.translate(px, py); 
     const facing = pig.vx < -0.5 ? 1 : -1; //移動方向で方向を検知
     ctx.scale(facing, 1); //移動方向に合わせて画像を左右変転
-    ctx.drawImage(
-      pigImage,
-      Math.round(-drawW / 2),
-      Math.round(-drawH * 0.7),
-      drawW,
-      drawH
-    );
-
+    ctx.drawImage(pigImage, Math.round(-drawW / 2), Math.round(-drawH * 0.7), drawW, drawH);
     ctx.restore();
 
     const label = `${pig.name} • ${pig.stage}`;
@@ -1141,7 +1112,7 @@
     ctx.fillStyle = "#ffffff";
     ctx.fillText(label, px, labelY + 13);
   }
-
+  
   function buildBackgroundLayer() {
     const bg = document.createElement("canvas");
     bg.width = canvas.width;
@@ -1149,151 +1120,54 @@
     const c = bg.getContext("2d");
     c.imageSmoothingEnabled = false;
 
-    const sky = c.createLinearGradient(0, 0, 0, 240);
-    sky.addColorStop(0, "#78c8ff");
-    sky.addColorStop(1, "#dff4ff");
-    c.fillStyle = sky;
-    c.fillRect(0, 0, bg.width, bg.height);
+    if (skyImage.complete && skyImage.naturalWidth) {
+      c.drawImage(skyImage, 0, 0, bg.width, BACKGROUND_SPLIT_Y);
+    } else {
+      const sky = c.createLinearGradient(0, 0, 0, BACKGROUND_SPLIT_Y);
+      sky.addColorStop(0, "#78c8ff");
+      sky.addColorStop(1, "#dff4ff");
+      c.fillStyle = sky;
+      c.fillRect(0, 0, bg.width, BACKGROUND_SPLIT_Y);
+    }
 
-    drawCloud(c, 180, 68, 1.08);
-    drawCloud(c, 390, 58, 0.92);
-    drawCloud(c, 720, 86, 1.0);
-
-    drawTiledRect(c, sprites.tiles.ids.dirt, 0, 230, bg.width, bg.height - 230);
-    drawTiledRect(c, sprites.tiles.ids.grassA, farm.x, farm.y, farm.w, farm.h, true);
-
-    drawPath(c, house.x + house.w - 4, house.y + house.h - 52, farm.x, house.y + house.h - 52, 36);
-    drawPath(c, barn.x + barn.w / 2, barn.y + barn.h, house.x + house.w / 2, house.y, 28, true);
-
-    drawBarn(c);
-    drawHouse(c);
+    if (farmBgImage.complete && farmBgImage.naturalWidth) {
+      c.drawImage(farmBgImage, 0, BACKGROUND_SPLIT_Y, bg.width, bg.height - BACKGROUND_SPLIT_Y);
+    } else {
+      //drawTiledRect(c, sprites.tiles.ids.dirt, 0, BACKGROUND_SPLIT_Y, bg.width, bg.height - BACKGROUND_SPLIT_Y);
+      drawTiledRect(c, sprites.tiles.ids.grassA, farm.x, farm.y, farm.w, farm.h, true);
+    }
+    drawJimusho(c);
     drawFence(c, farm);
-
-    c.fillStyle = "#f6efc8";
-    c.textAlign = "center";
-    c.font = "bold 15px sans-serif";
-    c.fillText("Barn", barn.x + barn.w / 2, barn.y + barn.h + 20);
-    c.fillText("Pig House", house.x + house.w / 2, house.y + house.h + 22);
-
     return bg;
   }
 
-  function drawBarn(c) {
-    drawTiledRect(c, sprites.tiles.ids.wall, barn.x, barn.y + 34, barn.w, barn.h - 34);
-
-    c.fillStyle = "#b84d39";
-    c.beginPath();
-    c.moveTo(barn.x - 10, barn.y + 36);
-    c.lineTo(barn.x + barn.w / 2, barn.y - 28);
-    c.lineTo(barn.x + barn.w + 10, barn.y + 36);
-    c.closePath();
-    c.fill();
-
-    c.strokeStyle = "#8a3326";
-    c.lineWidth = 3;
-    c.stroke();
-
-    c.fillStyle = "#e5c75e";
-    c.fillRect(barn.x + 24, barn.y + 56, 102, 28);
-    c.strokeStyle = "#8f6d24";
-    c.strokeRect(barn.x + 24, barn.y + 56, 102, 28);
-
-    c.fillStyle = "#5f3518";
-    c.fillRect(barn.x + 24, barn.y + 98, 34, 58);
-    c.fillRect(barn.x + 92, barn.y + 98, 34, 58);
-
-    c.fillStyle = "#9fd5ff";
-    c.fillRect(barn.x + 60, barn.y + 100, 30, 22);
-    c.strokeStyle = "#6e3f1d";
-    c.strokeRect(barn.x + 60, barn.y + 100, 30, 22);
-  }
-
-  function drawHouse(c) {
-    drawTiledRect(c, sprites.tiles.ids.wall, house.x, house.y + 38, house.w, house.h - 38);
-
-    c.fillStyle = "#b84d39";
-    c.beginPath();
-    c.moveTo(house.x - 10, house.y + 42);
-    c.lineTo(house.x + house.w / 2, house.y - 24);
-    c.lineTo(house.x + house.w + 10, house.y + 42);
-    c.closePath();
-    c.fill();
-
-    c.strokeStyle = "#7a2d21";
-    c.lineWidth = 3;
-    c.stroke();
-
-    c.fillStyle = "#4e2e18";
-    c.fillRect(house.x + 38, house.y + 104, 36, 86);
-
-    c.fillStyle = "#9fd5ff";
-    c.fillRect(house.x + 12, house.y + 78, 20, 18);
-    c.fillRect(house.x + 80, house.y + 78, 20, 18);
-
-    c.strokeStyle = "#6e3f1d";
-    c.lineWidth = 2;
-    c.strokeRect(house.x + 12, house.y + 78, 20, 18);
-    c.strokeRect(house.x + 80, house.y + 78, 20, 18);
-  }
-
-  function drawCloud(c, x, y, scale) {
-    c.save();
-    c.translate(x, y);
-    c.scale(scale, scale);
-    c.fillStyle = "rgba(255,255,255,0.9)";
-    c.beginPath();
-    c.arc(-20, 0, 14, 0, Math.PI * 2);
-    c.arc(0, -8, 18, 0, Math.PI * 2);
-    c.arc(20, 0, 15, 0, Math.PI * 2);
-    c.arc(6, 6, 14, 0, Math.PI * 2);
-    c.fill();
-    c.restore();
-  }
-
-  function drawPath(c, x1, y1, x2, y2, width, vertical = false) {
-    c.fillStyle = "rgba(98, 68, 40, 0.35)";
-
-    if (vertical) {
-      const left = x1 - width / 2;
-      const top = Math.min(y1, y2);
-      const height = Math.abs(y2 - y1);
-      drawTiledRect(c, sprites.tiles.ids.dirt, left, top, width, height);
+  function drawJimusho(c) {
+    if (jimushoImage.complete && jimushoImage.naturalWidth) {
+      c.drawImage(jimushoImage, jimusho.x, jimusho.y, jimusho.w, jimusho.h);
       return;
     }
-
-    c.fillRect(Math.min(x1, x2), y1 - width / 2, Math.abs(x2 - x1), width);
-    drawTiledRect(
-      c,
-      sprites.tiles.ids.dirt,
-      Math.min(x1, x2),
-      y1 - width / 2,
-      Math.abs(x2 - x1),
-      width
-    );
   }
 
   function drawFence(c, rect) {
-    c.strokeStyle = "#6b4523";
-    c.lineWidth = 6;
-    c.strokeRect(rect.x, rect.y, rect.w, rect.h);
-
-    c.fillStyle = "#ba8247";
-
-    for (let x = rect.x; x <= rect.x + rect.w; x += 36) {
-      c.fillRect(x - 3, rect.y - 10, 6, 20);
-      c.fillRect(x - 3, rect.y + rect.h - 10, 6, 20);
+    if (!fenceImage.complete || !fenceImage.naturalWidth) {
+      return;
     }
-
-    for (let y = rect.y; y <= rect.y + rect.h; y += 36) {
-      c.fillRect(rect.x - 10, y - 3, 20, 6);
-      c.fillRect(rect.x + rect.w - 10, y - 3, 20, 6);
+    const drawH = 72; // 好みで調整
+    const drawW = Math.round(drawH * (fenceImage.naturalWidth / fenceImage.naturalHeight));
+    // fence を sky と farm の境界に置く
+    // 必要ならこの値を少し上下に調整
+    const y = rect.y - Math.round(drawH * 0.55);
+    const startX = rect.x;
+    const endX = rect.x + rect.w;
+    c.save();
+    // farm 幅の中だけ描く
+    c.beginPath();
+    c.rect(startX, y, rect.w, drawH);
+    c.clip();
+    for (let x = startX; x < endX; x += drawW - 1) {
+      c.drawImage(fenceImage, x, y, drawW, drawH);
     }
-
-    c.fillStyle = "#d39b5b";
-    c.fillRect(rect.x, rect.y + 16, rect.w, 6);
-    c.fillRect(rect.x, rect.y + rect.h - 22, rect.w, 6);
-    c.fillRect(rect.x + 16, rect.y, 6, rect.h);
-    c.fillRect(rect.x + rect.w - 22, rect.y, 6, rect.h);
+    c.restore();
   }
 
   function drawTiledRect(c, tileId, x, y, w, h, useGrassMix = false) {
@@ -1353,71 +1227,10 @@
   // -----------------------------------
   function createSprites() {
     return {
-      pig: createPigSpriteSheet(),
       tiles: createTileSheet()
     };
   }
 
-  function createPigSpriteSheet() {
-    const frameW = 48;
-    const frameH = 32;
-    const cols = 4;
-    const palettes = [
-      {
-        body: "#f6b2c7",
-        leg: "#df87a7",
-        snout: "#f59cbc",
-        outline: "#8a4f61",
-        patch: "#ffd0de",
-        ear: "#f9bfd3"
-      },
-      {
-        body: "#ffbfd2",
-        leg: "#e48eab",
-        snout: "#f7a8c4",
-        outline: "#8e5566",
-        patch: "#ffd8e4",
-        ear: "#ffcfe0"
-      },
-      {
-        body: "#f3acc0",
-        leg: "#d97d9c",
-        snout: "#ee98b6",
-        outline: "#80495a",
-        patch: "#fdcad8",
-        ear: "#f5b7cb"
-      }
-    ];
-
-    const stageScales = [0.78, 0.92, 1.05, 1.18, 1.28];
-    const rows = palettes.length * stageScales.length;
-
-    const off = document.createElement("canvas");
-    off.width = frameW * cols;
-    off.height = frameH * rows;
-    const c = off.getContext("2d");
-    c.imageSmoothingEnabled = false;
-
-    palettes.forEach((palette, variantIndex) => {
-      stageScales.forEach((scale, stageIndex) => {
-        for (let frame = 0; frame < cols; frame += 1) {
-          const row = variantIndex * stageScales.length + stageIndex;
-          drawPigFrame(
-            c,
-            frame * frameW,
-            row * frameH,
-            frameW,
-            frameH,
-            scale,
-            frame,
-            palette
-          );
-        }
-      });
-    });
-
-    return { canvas: off, frameW, frameH };
-  }
 
   function drawPigFrame(c, ox, oy, fw, fh, scale, frame, palette) {
     const bodyBob = frame % 2 === 0 ? 0 : -0.6;
@@ -1463,9 +1276,9 @@
     c.fill();
     c.stroke();
 
-    c.fillStyle = palette.ear;
-    drawTriangle(c, 13, -7 + bodyBob, 16, -12 + bodyBob, 18, -6 + bodyBob);
-    drawTriangle(c, 18, -6 + bodyBob, 23, -11 + bodyBob, 22, -4 + bodyBob);
+    //c.fillStyle = palette.ear;
+    //drawTriangle(c, 13, -7 + bodyBob, 16, -12 + bodyBob, 18, -6 + bodyBob);
+    //drawTriangle(c, 18, -6 + bodyBob, 23, -11 + bodyBob, 22, -4 + bodyBob);
 
     c.fillStyle = palette.snout;
     c.beginPath();
@@ -1510,10 +1323,7 @@
       foodMix: 3,
       foodPumpkin: 4,
       foodRoot: 5,
-      poop: 6,
-      wall: 7,
-      roof: 8,
-      hay: 9
+      poop: 6
     };
 
     const count = 10;
@@ -1523,48 +1333,10 @@
     const c = off.getContext("2d");
     c.imageSmoothingEnabled = false;
 
-    drawGrassTile(c, ids.grassA * size, 0, size, "#74bc56", "#5ea143");
-    drawGrassTile(c, ids.grassB * size, 0, size, "#69b14f", "#4c8f39");
-    drawDirtTile(c, ids.dirt * size, 0, size);
     drawFeedMixTile(c, ids.foodMix * size, 0, size);
     drawPumpkinTile(c, ids.foodPumpkin * size, 0, size);
-    drawRootTile(c, ids.foodRoot * size, 0, size);
     drawPoopTile(c, ids.poop * size, 0, size);
-    drawWallTile(c, ids.wall * size, 0, size);
-    drawRoofTile(c, ids.roof * size, 0, size);
-    drawHayTile(c, ids.hay * size, 0, size);
-
     return { canvas: off, size, ids };
-  }
-
-  function drawGrassTile(c, ox, oy, size, base, dark) {
-    c.fillStyle = base;
-    c.fillRect(ox, oy, size, size);
-
-    c.fillStyle = dark;
-    for (let i = 0; i < 12; i += 1) {
-      const x = ox + ((i * 7) % 20) + 2;
-      const y = oy + ((i * 11) % 20) + 2;
-      c.fillRect(x, y, 2, 4);
-    }
-
-    c.fillStyle = "rgba(255,255,255,0.18)";
-    c.fillRect(ox + 2, oy + 2, size - 4, 2);
-  }
-
-  function drawDirtTile(c, ox, oy, size) {
-    c.fillStyle = "#8e6238";
-    c.fillRect(ox, oy, size, size);
-
-    c.fillStyle = "#6f4b29";
-    for (let i = 0; i < 10; i += 1) {
-      const x = ox + ((i * 9) % 18) + 2;
-      const y = oy + ((i * 5) % 18) + 3;
-      c.fillRect(x, y, 3, 2);
-    }
-
-    c.fillStyle = "#b78450";
-    c.fillRect(ox, oy + 2, size, 2);
   }
 
   function drawFeedMixTile(c, ox, oy, size) {
@@ -1592,21 +1364,6 @@
 
     c.fillStyle = "#4d8f32";
     c.fillRect(ox + 11, oy + 5, 2, 4);
-  }
-
-  function drawRootTile(c, ox, oy, size) {
-    c.fillStyle = "#b47de9";
-    c.beginPath();
-    c.arc(ox + 11, oy + 13, 5, 0, Math.PI * 2);
-    c.arc(ox + 15, oy + 15, 4, 0, Math.PI * 2);
-    c.fill();
-
-    c.fillStyle = "#7a54b5";
-    c.fillRect(ox + 13, oy + 10, 2, 7);
-
-    c.fillStyle = "#5fa84a";
-    c.fillRect(ox + 10, oy + 5, 2, 4);
-    c.fillRect(ox + 13, oy + 4, 2, 5);
   }
 
   function drawPoopTile(c, ox, oy, size) {
