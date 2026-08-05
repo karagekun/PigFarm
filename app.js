@@ -91,6 +91,11 @@
   const sprites = createSprites();
   let backgroundLayer = null;
 
+  const moneyImage = new Image();
+  moneyImage.src = "./assets/logo_money.png";
+  moneyImage.onload = () => render();
+  moneyImage.onerror = () => console.error("Failed to load image: ./assets/logo_money.png");
+
   const pigImage = new Image();
   pigImage.src = "./assets/pig_normal_adult.png";
   pigImage.onload = () => {render()};
@@ -99,7 +104,7 @@
   const jimushoImage = new Image();
   jimushoImage.src = "./assets/building_jimusho.png";
   jimushoImage.onload = () => {
-    backgroundLayer = buildBackgroundLayer();
+    //backgroundLayer = buildBackgroundLayer();
     render();
   };
   jimushoImage.onerror = () => {console.error("Failed to load image: ./assets/building_jimusho.png")};
@@ -107,7 +112,7 @@
   const skyImage = new Image();
   skyImage.src = "./assets/bg_sky_normal.png";
   skyImage.onload = () => {
-    backgroundLayer = buildBackgroundLayer();
+    //backgroundLayer = buildBackgroundLayer();
     render();
   };
   skyImage.onerror = () => {console.error("Failed to load background image: ./assets/bg_sky_normal.png")};
@@ -115,7 +120,7 @@
   const farmBgImage = new Image();
   farmBgImage.src = "./assets/bg_grassland_normal.png";
   farmBgImage.onload = () => {
-    backgroundLayer = buildBackgroundLayer();
+    //backgroundLayer = buildBackgroundLayer();
     render();
   };
   farmBgImage.onerror = () => {console.error("Failed to load background image: ./assets/bg_grassland_normal.png")};
@@ -1041,6 +1046,8 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(backgroundLayer, 0, 0);
 
+    drawMoneyStatus();
+
     if (openPanel === "jimusho") {
       drawBuildingHighlight(jimusho);
     }
@@ -1057,6 +1064,25 @@
       drawPig(pig);
     }
   }
+
+  function drawMoneyStatus() {
+    const x = 12;
+    const y = 12;
+    const iconSize = 32;
+
+    if (moneyImage.complete && moneyImage.naturalWidth) {
+        ctx.drawImage(moneyImage, x, y, iconSize, iconSize);
+    }
+
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 4;
+
+    const text = `${world.money}`;
+    ctx.strokeText(text, x + iconSize + 30, y + 25);
+    ctx.fillText(text, x + iconSize + 30, y + 25);
+}
 
   function drawBuildingHighlight(rect) {
     ctx.strokeStyle = "#ffd166";
