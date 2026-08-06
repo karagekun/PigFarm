@@ -1,35 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Pig Farm Demo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div class="wrapper">
     <div class="game-shell">
       <div class="canvas-card">
         <canvas id="gameCanvas" width="960" height="600"></canvas>
+        <section id="buildingCard" class="building-card" aria-hidden="true">
+          <div class="building-card__header">
+            <div>
+              <h2 id="cardTitle">Card</h2>
+              <p id="cardSubtitle" class="card-subtitle"></p>
+            </div>
+          </div>
+          <div id="cardBody" class="building-card__body"></div>
+        </section>
       </div>
     </div>
   </div>
 
   <div id="cardScrim" class="card-scrim"></div>
 
-  <section id="buildingCard" class="building-card" aria-hidden="true">
-    <div class="building-card__header">
-      <div>
-        <h2 id="cardTitle">Card</h2>
-        <p id="cardSubtitle" class="card-subtitle"></p>
-      </div>
-    </div>
-    <div id="cardBody" class="building-card__body"></div>
-  </section>
-
   <script src="app.js"></script>
 </body>
+
 </html>

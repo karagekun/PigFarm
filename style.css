@@ -328,7 +328,7 @@ button:disabled {
   overflow: hidden;
 }
 
-.progress > span {
+.progress>span {
   display: block;
   height: 100%;
   background: linear-gradient(90deg, #56cc9d, #f2c94c, #eb5757);
@@ -779,12 +779,28 @@ button:disabled {
     padding: 6px 10px;
   }
 }
+
 /* =========================
    Jimusho menu card
    resized to 320 x 590
    ========================= */
+.canvas-card {
+    position: relative;
+}
 
 .building-card.jimusho-manage-card {
+  position: absolute;
+
+  right: 20px;
+  bottom: 20px;
+  border-radius: 20px;
+
+  left: auto;
+  top: auto;
+
+  transform: none;
+
+  transform: translateY(18px);
   width: min(320px, calc(100vw - 20px));
   aspect-ratio: 320 / 590;
   max-height: none;
@@ -798,6 +814,10 @@ button:disabled {
   overflow: hidden;
   color: #4b3626;
   font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card.show {
+  transform: translateY(0);
 }
 
 .building-card.jimusho-manage-card .building-card__header {

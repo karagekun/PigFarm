@@ -14,11 +14,53 @@
   };
 
   const FOOD_TYPES = {
-    mix: {
+    corn: {
+      id: "corn",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3
+    },
+    carrot: {
+      id: "carrot",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3
+    },    
+    cabbage: {
+      id: "cabbage",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3
+    },
+    kabu: {
+      id: "kabu",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3
+    },
+    sweetpotato: {
+      id: "sweetpotato",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3
+    },
+    apple: {
+      id: "apple",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3
+    }//,
+    /*mix: {
       id: "mix",
       name: "Feed Mix",
       packQty: 5,
-      packCost: 15,
+      packCost: 1,
       hungerRelief: 3,
       growthBonus: 8,
       color: "#e8bf4d",
@@ -28,7 +70,7 @@
       id: "pumpkin",
       name: "Pumpkin Bites",
       packQty: 5,
-      packCost: 28,
+      packCost: 2,
       hungerRelief: 5,
       growthBonus: 18,
       color: "#f08c2e",
@@ -38,12 +80,12 @@
       id: "root",
       name: "Sweet Roots",
       packQty: 5,
-      packCost: 42,
+      packCost: 4,
       hungerRelief: 7,
       growthBonus: 30,
       color: "#bb7be8",
       tileKey: "foodRoot"
-    }
+    }*/
   };
 
   const FOOD_IDS = Object.keys(FOOD_TYPES);
@@ -94,6 +136,36 @@
   moneyImage.src = "./assets/logo_money.png";
   moneyImage.onload = () => render();
   moneyImage.onerror = () => console.error("Failed to load image: ./assets/logo_money.png");
+  
+  const cornImage = new Image();
+  cornImage.src = "./assets/food_corn.png";
+  cornImage.onload = () => render();
+  cornImage.onerror = () => console.error("Failed to load image: ./assets/food_corn.png");
+
+  const carrotImage = new Image();
+  carrotImage.src = "./assets/food_carrot.png";
+  carrotImage.onload = () => render();
+  carrotImage.onerror = () => console.error("Failed to load image: ./assets/food_carrot.png");
+
+  const cabbageImage = new Image();
+  cabbageImage.src = "./assets/food_cabbage.png";
+  cabbageImage.onload = () => render();
+  cabbageImage.onerror = () => console.error("Failed to load image: ./assets/food_cabbage.png");
+
+  const kabuImage = new Image();
+  kabuImage.src = "./assets/food_kabu.png";
+  kabuImage.onload = () => render();
+  kabuImage.onerror = () => console.error("Failed to load image: ./assets/food_kabu.png");
+
+  const sweetpotatoImage = new Image();
+  sweetpotatoImage.src = "./assets/food_sweetpotato.png";
+  sweetpotatoImage.onload = () => render();
+  sweetpotatoImage.onerror = () => console.error("Failed to load image: ./assets/food_sweetpotato.png");
+
+  const appleImage = new Image();
+  appleImage.src = "./assets/food_apple.png";
+  appleImage.onload = () => render();
+  appleImage.onerror = () => console.error("Failed to load image: ./assets/food_apple.png");
 
   const highlightImage = new Image();
   highlightImage.src = "./assets/highlight_mark.png";
@@ -117,26 +189,17 @@
 
   const skyImage = new Image();
   skyImage.src = "./assets/bg_sky_normal.png";
-  skyImage.onload = () => {
-    //backgroundLayer = buildBackgroundLayer();
-    render();
-  };
+  skyImage.onload = () => {render()};
   skyImage.onerror = () => { console.error("Failed to load background image: ./assets/bg_sky_normal.png") };
 
   const farmBgImage = new Image();
   farmBgImage.src = "./assets/bg_grassland_normal.png";
-  farmBgImage.onload = () => {
-    //backgroundLayer = buildBackgroundLayer();
-    render();
-  };
+  farmBgImage.onload = () => {render()};
   farmBgImage.onerror = () => { console.error("Failed to load background image: ./assets/bg_grassland_normal.png") };
 
   const fenceImage = new Image();
   fenceImage.src = "./assets/fence_wood.png";
-  fenceImage.onload = () => {
-    //backgroundLayer = buildBackgroundLayer();
-    render();
-  };
+  fenceImage.onload = () => {render()};
   fenceImage.onerror = () => { console.error("Failed to load image: ./assets/fence_bamboo.png") };
 
   const jimushoImage = new Image();
@@ -180,12 +243,9 @@
   canvas.addEventListener("pointercancel", onCanvasPointerCancel);
 
   cardScrimEl.addEventListener("click", closePanelCard);
-  //closeCardBtn.addEventListener("click", closePanelCard);
   cardBodyEl.addEventListener("click", onCardBodyClick);
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      closePanelCard();
-    }
+    if (event.key === "Escape") {closePanelCard()};
   });
 
   document.addEventListener("visibilitychange", () => {
@@ -193,9 +253,7 @@
       persistNow();
     } else {
       const elapsed = syncToNow(false);
-      if (elapsed > 2000) {
-        offlineInfo = `Caught up ${formatDuration(elapsed)} while the tab was hidden.`;
-      }
+      if (elapsed > 2000) {offlineInfo = `Caught up ${formatDuration(elapsed)} while the tab was hidden.`}
       updateHud();
       render();
     }
@@ -203,9 +261,7 @@
 
   window.addEventListener("focus", () => {
     const elapsed = syncToNow(false);
-    if (elapsed > 2000) {
-      offlineInfo = `Caught up ${formatDuration(elapsed)}.`;
-    }
+    if (elapsed > 2000) {offlineInfo = `Caught up ${formatDuration(elapsed)}.`}
     updateHud();
     render();
   });
@@ -235,19 +291,13 @@
 
   function loop() {
     const now = Date.now();
-
     syncToNow(false);
     render();
-
     if (now - lastUiRefreshAt >= 250) {
       updateHud();
       lastUiRefreshAt = now;
     }
-
-    if (now - lastAutoSaveAt >= AUTO_SAVE_INTERVAL_MS) {
-      persistNow();
-    }
-
+    if (now - lastAutoSaveAt >= AUTO_SAVE_INTERVAL_MS) {persistNow()}
     requestAnimationFrame(loop);
   }
 
@@ -261,12 +311,15 @@
       createdAt: now,
       lastUpdateAt: now,
       savedAt: now,
-      money: 120,
-      selectedFoodType: "mix",
+      money: 1000,
+      selectedFoodType: "corn",
       foodStock: {
-        mix: 8,
-        pumpkin: 2,
-        root: 1
+        corn: 1000,
+        carrot: 1000,
+        cabbage: 1000,
+        kabu: 1000,
+        sweetpotato: 1000,
+        apple: 1000
       },
       foods: [],
       poops: [],
@@ -277,7 +330,6 @@
     for (const name of ["Pinky", "Momo", "Choco"]) {
       newWorld.pigs.push(createPig(name, newWorld.nextPigId++));
     }
-
     return newWorld;
   }
 
@@ -326,7 +378,7 @@
       lastUpdateAt: safeNumber(raw?.lastUpdateAt, now),
       savedAt: safeNumber(raw?.savedAt, now),
       money: Math.max(0, Math.floor(safeNumber(raw?.money, 120))),
-      selectedFoodType: FOOD_TYPES[raw?.selectedFoodType] ? raw.selectedFoodType : "mix",
+      selectedFoodType: FOOD_TYPES[raw?.selectedFoodType] ? raw.selectedFoodType : "corn",
       foodStock: normalizeFoodStock(raw?.foodStock ?? raw?.foodInventory),
       foods: Array.isArray(raw?.foods) ? raw.foods.map(normalizeFoodItem) : [],
       poops: Array.isArray(raw?.poops) ? raw.poops.map(normalizePoop) : [],
@@ -346,30 +398,35 @@
     normalized.nextPigId = Math.max(normalized.nextPigId, maxId + 1);
 
     if (!FOOD_TYPES[normalized.selectedFoodType]) {
-      normalized.selectedFoodType = "mix";
+      normalized.selectedFoodType = "corn";
     }
-
     return normalized;
   }
 
   function normalizeFoodStock(rawStock) {
     if (Number.isFinite(rawStock)) {
       return {
-        mix: Math.max(0, Math.floor(rawStock)),
-        pumpkin: 0,
-        root: 0
+        corn: Math.max(0, Math.floor(rawStock)),
+        carrot: 0,
+        cabbage: 0,
+        kabu: 0,
+        sweetpotato: 0,
+        apple: 0
       };
     }
 
     return {
-      mix: Math.max(0, Math.floor(safeNumber(rawStock?.mix, 8))),
-      pumpkin: Math.max(0, Math.floor(safeNumber(rawStock?.pumpkin, 2))),
-      root: Math.max(0, Math.floor(safeNumber(rawStock?.root, 1)))
+      corn: Math.max(0, Math.floor(safeNumber(rawStock?.corn, 10))),
+      carrot: Math.max(0, Math.floor(safeNumber(rawStock?.carrot, 5))),
+      cabbage: Math.max(0, Math.floor(safeNumber(rawStock?.cabbage, 1))),
+      kabu: Math.max(0, Math.floor(safeNumber(rawStock?.kabu, 0))),
+      sweetpotato: Math.max(0, Math.floor(safeNumber(rawStock?.sweetpotato, 0))),
+      apple: Math.max(0, Math.floor(safeNumber(rawStock?.apple, 0)))
     };
   }
 
   function normalizeFoodItem(food) {
-    const type = FOOD_TYPES[food?.type] ? food.type : "mix";
+    const type = FOOD_TYPES[food?.type] ? food.type : "corn";
     return {
       type,
       x: clamp(
@@ -714,7 +771,6 @@
       }
     }
 
-    // mix target direction + avoidance
     dirX += avoidX * 1.35;
     dirY += avoidY * 1.35;
 
@@ -790,7 +846,7 @@
   }
 
   function feedPig(pig, foodType, fedAtMs) {
-    const config = FOOD_TYPES[foodType] || FOOD_TYPES.mix;
+    const config = FOOD_TYPES[foodType] || FOOD_TYPES.corn;
     const fedRecently =
       pig.lastFedAt > 0 && fedAtMs - pig.lastFedAt <= CONFIG.FREQUENT_FEED_WINDOW_MS;
 
@@ -1102,7 +1158,30 @@
     event.preventDefault();
     syncToNow(false);
 
+    const foodButtons = [
+      {x:420, type:"corn"},
+      {x:510, type:"carrot"},
+      {x:600, type:"cabbage"},
+      {x:690, type:"kabu"},
+      {x:780, type:"sweetpotato"},
+      {x:870, type:"apple"}
+    ];  
+
     const { x, y } = getCanvasPointerPosition(event);
+
+    for (const item of foodButtons) {
+      if (x >= item.x && x <= item.x + 32 && y >= 10 && y <= 10 + 32) {
+        if (world.selectedFoodType === item.type) {
+          world.selectedFoodType = null;   // unselect
+        } else {
+          world.selectedFoodType = item.type; // select
+        }
+
+        persistNow();
+        render();
+        return;
+      }
+    }
 
     const pig = pointInRect(x, y, farm) ? findPigAt(x, y) : null;
     if (pig) {
@@ -1764,7 +1843,7 @@
       </div>
 
       <div class="sheet-top">
-        <div class="summary-chip">Selected: ${selectedFood.name}</div>
+        <div class="summary-chip">Selected: ${selectedFood.id}</div>
         <div class="summary-chip">Total stock: ${getTotalFoodStock()}</div>
         <div class="summary-chip">Buy pig: $${buyPrice}</div>
       </div>
@@ -1857,7 +1936,13 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(backgroundLayer, 0, 0);
 
-    drawMoneyStatus();
+    drawTopStatus(12, 12, moneyImage, `${world.money}`);
+    drawTopStatus(420, 10, cornImage, `${world.foodStock.corn}`, "corn")
+    drawTopStatus(510, 10, carrotImage, `${world.foodStock.carrot}`, "carrot")
+    drawTopStatus(600, 10, cabbageImage, `${world.foodStock.cabbage}`, "cabbage")
+    drawTopStatus(690, 10, kabuImage, `${world.foodStock.kabu}`, "kabu")
+    drawTopStatus(780, 10, sweetpotatoImage, `${world.foodStock.sweetpotato}`, "sweetpotato")
+    drawTopStatus(870, 10, appleImage, `${world.foodStock.apple}`, "apple")
 
     if (openPanel === "jimusho") {
       drawBuildingHighlight(jimusho);
@@ -1874,6 +1959,25 @@
     for (const pig of world.pigs) {
       drawPig(pig);
     }
+  }
+
+  function drawTopStatus(x, y, image, text, foodType = null){
+    const iconSize = 32;
+    if (foodType && world.selectedFoodType === foodType) {
+      ctx.beginPath();
+      ctx.arc(x+iconSize/2, y+iconSize/2, iconSize/2+1, 0, Math.PI*2);
+      ctx.fillStyle = "#2f5f5f";
+      ctx.fill();
+    }
+
+    if (image.complete && image.naturalWidth){ctx.drawImage(image, x, y, iconSize, iconSize)};
+
+    ctx.font = "bold 18px sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 4;
+    ctx.strokeText(text, x + iconSize + 2, y + 23);
+    ctx.fillText(text, x + iconSize + 2, y + 23);
   }
 
   function drawMoneyStatus() {
@@ -1901,11 +2005,44 @@
     ctx.strokeRect(rect.x - 4, rect.y - 4, rect.w + 8, rect.h + 8);
   }
 
-  function drawFood(food) {
-    const tileId = sprites.tiles.ids[FOOD_TYPES[food.type].tileKey];
-    drawShadow(food.x, food.y + 7, 12, 5, "rgba(0,0,0,0.16)");
-    drawTileSpriteCentered(ctx, tileId, food.x, food.y, 22);
+function drawFood(food) {
+  drawShadow(food.x, food.y + 7, 12, 5, "rgba(0,0,0,0.16)");
+
+  let img = null;
+  switch (food.type) {
+    case "corn":
+      img = cornImage;
+      break;
+    case "carrot":
+      img = carrotImage;
+      break;
+    case "cabbage":
+      img = cabbageImage;
+      break;
+    case "kabu":
+      img = kabuImage;
+      break;
+    case "sweetpotato":
+      img = sweetpotatoImage;
+      break;
+    case "apple":
+      img = appleImage;
+      break;
+    default:
+      return; // unknown food
   }
+
+  if (!img.complete || !img.naturalWidth) return;
+
+  const drawSize = 22;
+  ctx.drawImage(
+    img,
+    food.x - drawSize / 2,
+    food.y - drawSize / 2,
+    drawSize,
+    drawSize
+  );
+}
 
   function drawPoop(poop) {
     drawShadow(poop.x, poop.y + 7, 12, 5, "rgba(0,0,0,0.18)");
@@ -2039,7 +2176,7 @@
         markW * (sleepMarkImage.naturalHeight / sleepMarkImage.naturalWidth)
       );
 
-      const markX = px + pig.size * 1.85;
+      const markX = px + pig.size * 1.25;
       const markY = py - drawH * 0.65;
 
       ctx.save();
