@@ -19,7 +19,7 @@
       name: "Feed Mix",
       packQty: 5,
       packCost: 15,
-      hungerRelief: 38,
+      hungerRelief: 3,
       growthBonus: 8,
       color: "#e8bf4d",
       tileKey: "foodMix"
@@ -29,7 +29,7 @@
       name: "Pumpkin Bites",
       packQty: 5,
       packCost: 28,
-      hungerRelief: 56,
+      hungerRelief: 5,
       growthBonus: 18,
       color: "#f08c2e",
       tileKey: "foodPumpkin"
@@ -39,7 +39,7 @@
       name: "Sweet Roots",
       packQty: 5,
       packCost: 42,
-      hungerRelief: 72,
+      hungerRelief: 7,
       growthBonus: 30,
       color: "#bb7be8",
       tileKey: "foodRoot"
@@ -86,7 +86,6 @@
   const cardTitleEl = document.getElementById("cardTitle");
   const cardSubtitleEl = document.getElementById("cardSubtitle");
   const cardBodyEl = document.getElementById("cardBody");
-  //const closeCardBtn = document.getElementById("closeCardBtn");
 
   const sprites = createSprites();
   let backgroundLayer = null;
@@ -97,9 +96,14 @@
   moneyImage.onerror = () => console.error("Failed to load image: ./assets/logo_money.png");
 
   const highlightImage = new Image();
-  highlightImage.src = "./assets/highlight.png";
+  highlightImage.src = "./assets/highlight_mark.png";
   highlightImage.onload = () => { render(); };
   highlightImage.onerror = () => { console.error("Failed to load image: ./assets/highlight.png") };
+
+  const sleepMarkImage = new Image();
+  sleepMarkImage.src = "./assets/sleep_mark.png";
+  sleepMarkImage.onload = () => { render(); };
+  sleepMarkImage.onerror = () => { console.error("Failed to load image: ./assets/sleep_mark.png") };
 
   const truckImage = new Image();
   truckImage.src = "./assets/truck_kcar.png";
@@ -152,6 +156,8 @@
   let selectedPigId = null;
   let sellConfirmPigId = null;
   let dragState = null;
+  let herdLeaderByPigId = new Map();
+  let herdLeaderIds = new Set();
 
   const savedText = safeStorageGet(SAVE_KEY);
   let world = savedText ? loadWorld(savedText) || createNewWorld() : createNewWorld();
@@ -532,6 +538,7 @@
   // Simulation
   // -----------------------------------
   function stepWorld(dtMs, stepStart, stepEnd) {
+    prepareHerdingLeaders();
     for (const pig of world.pigs) {
       updatePig(pig, dtMs, stepStart, stepEnd);
     }
@@ -546,8 +553,6 @@
     applyStage(pig);
 
     if (dragState && dragState.pigId === pig.id) {
-      //pig.vx = 0;
-      //pig.vy = 0;
       pig.targetX = pig.x;
       pig.targetY = pig.y;
       return;
@@ -556,19 +561,46 @@
     if (isPigSellPending(pig)) {
       pig.x = 825;
       pig.y = 210;
-      //pig.vx = 0;
-      //pig.vy = 0;
       pig.targetX = pig.x;
       pig.targetY = pig.y;
       return
     }
 
-    const nearbyFood = nearestFood(pig);
-    const hungry = pig.hunger >= CONFIG.HUNGRY_TO_SEEK_FOOD;
+    const behavior = getPigHungerBehavior(pig);
+    pig.moveSpeed = Math.floor(pig.moveSpeed * behavior.speed);
+    const nearbyFood = nearestFood(pig, behavior.foodRange);
 
-    if (nearbyFood && hungry) {
+    if (behavior.mode === "resting") {
+      pig.targetX = pig.x;
+      pig.targetY = pig.y;
+    } else if (nearbyFood) {
       pig.targetX = nearbyFood.food.x;
       pig.targetY = nearbyFood.food.y;
+    } else if (behavior.mode === "herding") {
+      const leaderId = herdLeaderByPigId.get(pig.id);
+      const leader = leaderId
+        ? world.pigs.find((item) => item.id === leaderId)
+        : null;
+
+      if (leader) {
+        pig.wanderTimer -= dtSec;
+
+        const targetTooFarFromLeader =
+          distance(pig.targetX, pig.targetY, leader.x, leader.y) > 90;
+
+        if (
+          pig.wanderTimer <= 0 ||
+          distance(pig.x, pig.y, pig.targetX, pig.targetY) < 10 ||
+          targetTooFarFromLeader
+        ) {
+          chooseHerdTargetAroundPig(pig, leader);
+        }
+      } else {
+        pig.wanderTimer -= dtSec;
+        if (pig.wanderTimer <= 0 || distance(pig.x, pig.y, pig.targetX, pig.targetY) < 10) {
+          chooseWanderTarget(pig);
+        }
+      }
     } else {
       pig.wanderTimer -= dtSec;
       if (pig.wanderTimer <= 0 || distance(pig.x, pig.y, pig.targetX, pig.targetY) < 10) {
@@ -734,11 +766,11 @@
   }
 
 
-  function nearestFood(pig) {
+  function nearestFood(pig, maxDist = Infinity) {
     if (!world.foods.length) return null;
 
     let bestFood = null;
-    let bestDist = Infinity;
+    let bestDist = maxDist;
 
     for (const food of world.foods) {
       const d = distance(pig.x, pig.y, food.x, food.y);
@@ -899,6 +931,113 @@
     world.foodStock[foodId] = (world.foodStock[foodId] || 0) + food.packQty;
     offlineInfo = `Bought ${food.packQty} ${food.name} for $${food.packCost}.`;
     return true;
+  }
+
+  function getPigHungerBehavior(pig) {
+    if (pig.hunger < 5) { return { mode: "resting", speed: 0, foodRange: 0 } };
+    if (pig.hunger < 40) { return { mode: "herding", speed: 1.4, foodRange: 90 } };
+    if (pig.hunger < 70) { return { mode: "foraging", speed: 1.1, foodRange: 220 } };
+    return { mode: "starving", speed: 0.8, foodRange: 150 };
+  }
+
+  function nearestPig(pig, maxDist = Infinity) {
+    let bestPig = null;
+    let bestDist = maxDist;
+
+    for (const other of world.pigs) {
+      if (other === pig) continue;
+
+      const d = distance(pig.x, pig.y, other.x, other.y);
+      if (d < bestDist) {
+        bestDist = d;
+        bestPig = other;
+      }
+    }
+
+    return bestPig ? { pig: bestPig, dist: bestDist } : null;
+  }
+
+  function prepareHerdingLeaders() {
+    herdLeaderByPigId.clear();
+    herdLeaderIds.clear();
+
+    const herdingPigs = world.pigs
+      .filter((pig) => getPigHungerBehavior(pig).mode === "herding")
+      .slice()
+      .sort((a, b) => {
+        if (a.ageMinutes !== b.ageMinutes) {
+          return a.ageMinutes - b.ageMinutes; // younger first
+        }
+        return a.id - b.id;
+      });
+
+    for (const pig of herdingPigs) {
+      // if another pig already chose this pig as a leader,
+      // this pig will not follow another pig
+      if (herdLeaderIds.has(pig.id)) {
+        continue;
+      }
+
+      const leader = findNearestOlderPig(pig);
+      if (!leader) continue;
+
+      herdLeaderByPigId.set(pig.id, leader.id);
+      herdLeaderIds.add(leader.id);
+    }
+  }
+
+  function findNearestOlderPig(pig) {
+    let bestPig = null;
+    let bestDist = Infinity;
+
+    for (const other of world.pigs) {
+      if (other === pig) continue;
+      if (other.ageMinutes <= pig.ageMinutes) continue; // only older pigs
+
+      const d = distance(pig.x, pig.y, other.x, other.y);
+      if (d < bestDist) {
+        bestDist = d;
+        bestPig = other;
+      }
+    }
+
+    return bestPig;
+  }
+
+  function chooseHerdTargetAroundPig(pig, leader) {
+    const angle = rand(0, Math.PI * 2);
+    const radius = pig.size + leader.size + rand(18, 56);
+
+    pig.targetX = clamp(
+      leader.x + Math.cos(angle) * radius,
+      farm.x + pig.size,
+      farm.x + farm.w - pig.size
+    );
+
+    pig.targetY = clamp(
+      leader.y + Math.sin(angle) * radius,
+      farm.y + pig.size,
+      farm.y + farm.h - pig.size
+    );
+
+    pig.wanderTimer = rand(1.2, 3.0);
+  }
+
+  function chooseFollowPigTarget(pig, leader) {
+    const angle = ((pig.id * 53 + leader.id * 17) % 360) * Math.PI / 180;
+    const radius = pig.size + leader.size + 18;
+
+    pig.targetX = clamp(
+      leader.x + Math.cos(angle) * radius,
+      farm.x + pig.size,
+      farm.x + farm.w - pig.size
+    );
+
+    pig.targetY = clamp(
+      leader.y + Math.sin(angle) * radius,
+      farm.y + pig.size,
+      farm.y + farm.h - pig.size
+    );
   }
 
   function placeSelectedFood(x, y) {
@@ -1784,7 +1923,40 @@
     return `rgba(0,0,0,${alpha.toFixed(2)})`;
   }
 
-  function drawPig(pig) {
+  function getPigRenderMotion(pig) {
+    const isDragging = !!dragState && dragState.pigId === pig.id;
+    const isSellPending = isPigSellPending(pig);
+    const isResting = getPigHungerBehavior(pig).mode === "resting";
+    const speedNow = Math.hypot(pig.vx, pig.vy);
+    const moving = speedNow > 1;
+    const t = (Date.now() + pig.animOffset) * 0.012;
+
+    const sway = isDragging
+      ? Math.sin(t * 1.35) * 0.3
+      : moving
+        ? Math.sin(t) * 0.05
+        : 0;
+
+    const bobY = isDragging
+      ? Math.sin(t * 2.7) * 2.5
+      : moving
+        ? Math.sin(t * 2) * 1.5
+        : 0;
+
+    const markSway = isResting ? Math.sin(t * 1.2) * 0.16 : 0;
+
+    return {
+      isDragging,
+      isSellPending,
+      isResting,
+      sway,
+      bobY,
+      markSway,
+      t
+    };
+  }
+
+  /*function drawPig(pig) {
     const isDragging = !!dragState && dragState.pigId === pig.id;
     const isSellPending = isPigSellPending(pig);
     const speedNow = Math.hypot(pig.vx, pig.vy);
@@ -1813,6 +1985,91 @@
       const highlightW = Math.round(drawW * 0.6);
       const highlightH = Math.round(highlightW * (highlightImage.naturalHeight / highlightImage.naturalWidth));
       ctx.drawImage(highlightImage, Math.round(px - highlightW / 2), Math.round(py - drawH * 1.55), highlightW, highlightH);
+    }
+  }*/
+
+  function drawPig(pig) {
+    const motion = getPigRenderMotion(pig);
+    const sway = motion.sway;
+    const bobY = motion.bobY;
+    const isResting = motion.isResting;
+    const markSway = motion.markSway;
+    drawShadow(pig.x, pig.y + pig.size * 0.4, pig.size * 1.05, pig.size * 0.35, getPigShadowColor(pig));
+
+    if (!pigImage.complete || !pigImage.naturalWidth) return;
+
+    const aspect = pigImage.naturalWidth / pigImage.naturalHeight;
+    const drawH = Math.round(pig.size * 2.4);
+    const drawW = Math.round(drawH * aspect);
+    const px = Math.round(pig.x);
+    const py = Math.round(pig.y);
+
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.translate(px, py + bobY);
+    ctx.rotate(sway);
+
+    //const facing = pig.vx < -0.5 ? 1 : -1;
+    //ctx.scale(facing, 1);
+    if (pig._facing !== 1 && pig._facing !== -1) {
+      const initialDx = pig.targetX - pig.x;
+      pig._facing = initialDx < 0 ? 1 : -1;
+    }
+
+    if (pig.vx < -0.5) {
+      pig._facing = 1;
+    } else if (pig.vx > 0.5) {
+      pig._facing = -1;
+    }
+    ctx.scale(pig._facing, 1);
+    ctx.drawImage(
+      pigImage,
+      Math.round(-drawW / 2),
+      Math.round(-drawH * 0.7),
+      drawW,
+      drawH
+    );
+    ctx.restore();
+
+    // sleep mark for resting pigs
+    if (isResting && sleepMarkImage.complete && sleepMarkImage.naturalWidth) {
+      const markW = Math.round(drawW * 0.55);
+      const markH = Math.round(
+        markW * (sleepMarkImage.naturalHeight / sleepMarkImage.naturalWidth)
+      );
+
+      const markX = px + pig.size * 1.85;
+      const markY = py - drawH * 0.65;
+
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.translate(Math.round(markX), Math.round(markY));
+      ctx.rotate(markSway);
+      ctx.drawImage(
+        sleepMarkImage,
+        Math.round(-markW / 2),
+        Math.round(-markH / 2),
+        markW,
+        markH
+      );
+      ctx.restore();
+    }
+
+    if (selectedPigId === pig.id && highlightImage.complete && highlightImage.naturalWidth) {
+      const highlightW = Math.round(drawW * 0.6);
+      const highlightH = Math.round(
+        highlightW * (highlightImage.naturalHeight / highlightImage.naturalWidth)
+      );
+
+      ctx.drawImage(
+        highlightImage,
+        Math.round(px - highlightW / 2),
+        Math.round(py - drawH * 1.55),
+        highlightW,
+        highlightH
+      );
     }
   }
 
