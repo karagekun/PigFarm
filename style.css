@@ -13,6 +13,7 @@
   --card-border: #294056;
   --success: #2a9d8f;
   --shadow: rgba(0, 0, 0, 0.26);
+  --paper-font: "Arial Rounded MT Bold", "Trebuchet MS", "Verdana", sans-serif;
 }
 
 * {
@@ -169,19 +170,6 @@ canvas {
   padding: 14px 16px 18px;
   overflow: auto;
   max-height: calc(80vh - 84px);
-}
-
-.icon-btn {
-  width: 44px;
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 24px;
-  line-height: 1;
-  color: white;
-  background: var(--ghost);
 }
 
 button {
@@ -408,4 +396,617 @@ button:disabled {
   .row-actions button {
     flex-basis: 100%;
   }
+}
+
+/* =========================
+   Pig note card (card_note2.png)
+   ========================= */
+.building-card.pig-info-card {
+  left: 50%;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+
+  width: min(400px, calc(100vw - 24px));
+  aspect-ratio: 528 / 334;
+  max-height: none;
+
+  transform: translate(-50%, -44%);
+  opacity: 0;
+
+  background: url("./assets/card_note2.png") no-repeat center center;
+  background-size: 100% 100%;
+
+  border: none;
+  border-radius: 0;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  color: #4b3626;
+}
+
+/* show state for pig note */
+.building-card.pig-info-card.show {
+  transform: translate(-50%, -50%);
+  opacity: 1;
+}
+
+/* remove modern header look, but keep close button usable */
+.building-card.pig-info-card .building-card__header {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border-bottom: none;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.building-card.pig-info-card .building-card__header h2,
+.building-card.pig-info-card .card-subtitle {
+  display: none;
+}
+
+/* body fills the paper */
+.building-card.pig-info-card .building-card__body {
+  position: absolute;
+  inset: 0;
+  max-height: none;
+  overflow: hidden;
+  padding: 52px 48px 30px 48px;
+  color: #4b3626;
+}
+
+/* pig note content */
+.building-card.pig-info-card .pig-note-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  height: 100%;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.building-card.pig-info-card .pig-note-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #4a3524;
+}
+
+.building-card.pig-info-card .pig-note-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 17px;
+  line-height: 1.2;
+  padding-bottom: 2px;
+  border-bottom: 1px dashed rgba(91, 67, 46, 0.22);
+}
+
+.building-card.pig-info-card .pig-note-label {
+  color: #7a5d45;
+  font-weight: 600;
+}
+
+.building-card.pig-info-card .pig-note-meter {
+  height: 10px;
+  margin: 0 0 3px;
+  border: 1px solid rgba(91, 67, 46, 0.28);
+  background: rgba(120, 94, 70, 0.10);
+  overflow: hidden;
+}
+
+.building-card.pig-info-card .pig-note-meter span {
+  display: block;
+  height: 100%;
+  background: rgba(110, 80, 52, 0.72);
+}
+
+/* slightly tighter on very small screens */
+@media (max-width: 540px) {
+  .building-card.pig-info-card .building-card__body {
+    padding: 11% 9% 8% 9%;
+  }
+
+  .building-card.pig-info-card .pig-note-title {
+    font-size: 21px;
+  }
+
+  .building-card.pig-info-card .pig-note-row {
+    font-size: 15px;
+  }
+}
+
+/* =========================
+   Pig note inner layout
+   left-top: photo
+   left-bottom: name / stage / age
+   right: other infos
+   ========================= */
+
+.building-card.pig-info-card .building-card__body {
+  position: absolute;
+  inset: 0;
+  max-height: none;
+  overflow: hidden;
+  padding: 34px 26px 20px 26px;
+  color: #4b3626;
+}
+
+.building-card.pig-info-card .pig-note-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 46px;
+  height: 100%;
+  min-width: 0;
+}
+
+.building-card.pig-info-card .pig-note-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.building-card.pig-info-card .pig-note-photo-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.building-card.pig-info-card .pig-note-photo {
+  width: 150px;
+  max-width: 200%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.building-card.pig-info-card .pig-note-left-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-bottom: 20px;
+}
+
+.building-card.pig-info-card .pig-note-name {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: #4a3524;
+  word-break: break-word;
+}
+
+.building-card.pig-info-card .pig-note-mini {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.building-card.pig-info-card .pig-note-mini-label {
+  color: #7a5d45;
+  font-weight: 600;
+}
+
+.building-card.pig-info-card .pig-note-right {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.building-card.pig-info-card .pig-note-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.15;
+  padding-bottom: 2px;
+  border-bottom: 1px dashed rgba(91, 67, 46, 0.22);
+}
+
+.building-card.pig-info-card .pig-note-label {
+  color: #7a5d45;
+  font-weight: 600;
+  flex: 0 0 auto;
+}
+
+.building-card.pig-info-card .pig-note-row strong,
+.building-card.pig-info-card .pig-note-mini strong {
+  text-align: right;
+}
+
+.building-card.pig-info-card .pig-note-meter {
+  height: 9px;
+  margin: -1px 0 2px;
+  border: 1px solid rgba(91, 67, 46, 0.28);
+  background: rgba(120, 94, 70, 0.10);
+  overflow: hidden;
+}
+
+.building-card.pig-info-card .pig-note-meter span {
+  display: block;
+  height: 100%;
+  background: rgba(110, 80, 52, 0.72);
+}
+
+/* smaller screens */
+@media (max-width: 480px) {
+  .building-card.pig-info-card .building-card__body {
+    padding: 8% 6.5% 6% 6.5%;
+  }
+
+  .building-card.pig-info-card .pig-note-layout {
+    grid-template-columns: 34% 1fr;
+    gap: 10px;
+  }
+
+  .building-card.pig-info-card .pig-note-photo {
+    width: 100%;
+    max-width: 96px;
+  }
+
+  .building-card.pig-info-card .pig-note-name {
+    font-size: 17px;
+  }
+
+  .building-card.pig-info-card .pig-note-row {
+    font-size: 12px;
+  }
+
+  .building-card.pig-info-card .pig-note-mini {
+    font-size: 12px;
+  }
+}
+
+/* =========================
+   Sell confirm panel (message.png 576x143)
+   ========================= */
+
+.building-card.sell-confirm-card {
+  left: 50%;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+
+  width: min(573px, calc(100vw - 24px));
+  aspect-ratio: 573 / 135;
+  max-height: none;
+
+  transform: translate(-50%, -44%);
+  opacity: 0;
+
+  background: url("./assets/message.png") no-repeat center center;
+  background-size: 100% 100%;
+
+  border: none;
+  border-radius: 0;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  color: #4b3626;
+}
+
+.building-card.sell-confirm-card.show {
+  transform: translate(-50%, -50%);
+  opacity: 1;
+}
+
+.building-card.sell-confirm-card .building-card__header {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border-bottom: none;
+  pointer-events: none;
+}
+
+.building-card.sell-confirm-card .building-card__header h2,
+.building-card.sell-confirm-card .card-subtitle {
+  display: none;
+}
+
+.building-card.sell-confirm-card .building-card__body {
+  position: absolute;
+  inset: 0;
+  max-height: none;
+  overflow: hidden;
+  padding: 24px 28px 18px 28px;
+  color: #4b3626;
+}
+
+.building-card.sell-confirm-card .sell-confirm-wrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  height: 100%;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.building-card.sell-confirm-card .sell-confirm-text {
+  font-size: 22px;
+  line-height: 1.2;
+  color: #4a3524;
+}
+
+.building-card.sell-confirm-card .sell-confirm-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.building-card.sell-confirm-card .sell-confirm-actions button {
+  min-width: 84px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.building-card.sell-confirm-card .sell-confirm-actions .secondary {
+  background: #7b6652;
+}
+
+.building-card.sell-confirm-card .sell-confirm-actions .danger {
+  background: #9d5d4d;
+}
+
+@media (max-width: 640px) {
+  .building-card.sell-confirm-card .building-card__body {
+    padding: 16px 18px 14px 18px;
+  }
+
+  .building-card.sell-confirm-card .sell-confirm-wrap {
+    gap: 10px;
+  }
+
+  .building-card.sell-confirm-card .sell-confirm-text {
+    font-size: 16px;
+  }
+
+  .building-card.sell-confirm-card .sell-confirm-actions button {
+    min-width: 68px;
+    min-height: 34px;
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
+/* =========================
+   Jimusho menu card
+   resized to 320 x 590
+   ========================= */
+
+.building-card.jimusho-manage-card {
+  width: min(320px, calc(100vw - 20px));
+  aspect-ratio: 320 / 590;
+  max-height: none;
+
+  background: url("./assets/farmmanagement.png") no-repeat center center;
+  background-size: 100% 100%;
+
+  border: none;
+  border-radius: 0;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  color: #4b3626;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .building-card__header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 42px 18px 4px 18px;
+  border-bottom: none;
+  background: transparent;
+  z-index: 1;
+}
+
+.building-card.jimusho-manage-card .building-card__header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #4a3524;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .card-subtitle {
+  margin-top: 4px;
+  color: #7a5d45;
+  font-size: 11px;
+  line-height: 1.35;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .building-card__body {
+  position: absolute;
+  top: 92px;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  padding: 0 14px 0 14px;
+  max-height: none;
+  overflow: auto;
+  color: #4b3626;
+  font-family: var(--paper-font);
+}
+
+/* fit content into smaller paper */
+.building-card.jimusho-manage-card .sheet-top {
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.building-card.jimusho-manage-card .summary-chip {
+  padding: 5px 8px;
+  font-size: 11px;
+  line-height: 1.2;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(91, 67, 46, 0.18);
+  color: #4b3626;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .sheet-note {
+  margin: 0 0 8px;
+  color: #7a5d45;
+  line-height: 1.4;
+  font-size: 12px;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .full-btn {
+  width: 100%;
+  min-height: 38px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .sheet-list {
+  display: grid;
+  gap: 8px;
+}
+
+.building-card.jimusho-manage-card .sheet-row {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(91, 67, 46, 0.16);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.building-card.jimusho-manage-card .row-header {
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.building-card.jimusho-manage-card .row-title {
+  gap: 6px;
+}
+
+.building-card.jimusho-manage-card .row-title strong {
+  font-size: 13px;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .price-tag {
+  padding: 3px 6px;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #4b3626;
+}
+
+.building-card.jimusho-manage-card .stage-chip {
+  padding: 1px 6px;
+  font-size: 10px;
+}
+
+.building-card.jimusho-manage-card .food-swatch {
+  width: 10px;
+  height: 10px;
+}
+
+.building-card.jimusho-manage-card .meta-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 6px 0 8px;
+}
+
+.building-card.jimusho-manage-card .meta-item {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(91, 67, 46, 0.14);
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #4b3626;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .label {
+  color: #7a5d45;
+  font-size: 10px;
+  margin-bottom: 1px;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .meter-label {
+  font-size: 11px;
+  color: #7a5d45;
+  margin-bottom: 4px;
+  font-family: var(--paper-font);
+}
+
+.building-card.jimusho-manage-card .progress {
+  height: 8px;
+}
+
+.building-card.jimusho-manage-card .row-actions {
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.building-card.jimusho-manage-card .row-actions button {
+  flex: 1 1 calc(50% - 3px);
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-family: var(--paper-font);
+}
+
+@media (max-width: 480px) {
+  .building-card.jimusho-manage-card {
+    width: min(320px, calc(100vw - 14px));
+  }
+
+  .building-card.jimusho-manage-card .building-card__header {
+    padding: 13% 6% 2% 6%;
+  }
+
+  .building-card.jimusho-manage-card .building-card__body {
+    top: 15.5%;
+    bottom: 4%;
+    padding: 0 4.5% 0 4.5%;
+  }
+
+  .building-card.jimusho-manage-card .building-card__header h2 {
+    font-size: 17px;
+  }
+
+  .building-card.jimusho-manage-card .card-subtitle {
+    font-size: 10px;
+  }
+
+  .building-card.jimusho-manage-card .summary-chip,
+  .building-card.jimusho-manage-card .meta-item,
+  .building-card.jimusho-manage-card .row-actions button {
+    font-size: 10px;
+  }
+}
+
+/* =========================
+   Shared paper style for pig note + sell confirm
+   Put this at the END of style.css
+   ========================= */
+.building-card.pig-info-card,
+.building-card.sell-confirm-card,
+.building-card.pig-info-card .building-card__body,
+.building-card.sell-confirm-card .building-card__body,
+.building-card.pig-info-card .pig-note-name,
+.building-card.pig-info-card .pig-note-mini,
+.building-card.pig-info-card .pig-note-row,
+.building-card.pig-info-card .pig-note-label,
+.building-card.pig-info-card .pig-note-mini-label,
+.building-card.sell-confirm-card .sell-confirm-text,
+.building-card.sell-confirm-card .sell-confirm-actions button {
+  font-family: var(--paper-font);
 }

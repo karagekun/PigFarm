@@ -64,8 +64,8 @@
   const STAGE_ORDER = ["Baby", "Young", "Adult", "Old", "Old Old"];
 
   //window is 960 x 600
-  const jimusho = { x: 28, y: 75, w: 233, h: 186 };
-  //const farm = { x: 210, y: 230, w: 700, h: 300 };
+  const jimusho = { x: 28, y: 10, w: 330, h: 240 };
+  const truck = { x: 800, y: 156, w: 138, h: 112 };
   const farm = { x: 0, y: 230, w: 960, h: 370 };
 
   const BACKGROUND_SPLIT_Y = 230;
@@ -86,7 +86,7 @@
   const cardTitleEl = document.getElementById("cardTitle");
   const cardSubtitleEl = document.getElementById("cardSubtitle");
   const cardBodyEl = document.getElementById("cardBody");
-  const closeCardBtn = document.getElementById("closeCardBtn");
+  //const closeCardBtn = document.getElementById("closeCardBtn");
 
   const sprites = createSprites();
   let backgroundLayer = null;
@@ -96,26 +96,28 @@
   moneyImage.onload = () => render();
   moneyImage.onerror = () => console.error("Failed to load image: ./assets/logo_money.png");
 
+  const highlightImage = new Image();
+  highlightImage.src = "./assets/highlight.png";
+  highlightImage.onload = () => { render(); };
+  highlightImage.onerror = () => { console.error("Failed to load image: ./assets/highlight.png") };
+
+  const truckImage = new Image();
+  truckImage.src = "./assets/truck_kcar.png";
+  truckImage.onload = () => { render() };
+  truckImage.onerror = () => { console.error("Failed to load image: ./assets/truck_kcar.png") };
+
   const pigImage = new Image();
   pigImage.src = "./assets/pig_normal_adult.png";
-  pigImage.onload = () => {render()};
-  pigImage.onerror = () => {console.error("Failed to load pig image: ./assets/pig_normal_adult.png")};
+  pigImage.onload = () => { render() };
+  pigImage.onerror = () => { console.error("Failed to load pig image: ./assets/pig_normal_adult.png") };
 
-  const jimushoImage = new Image();
-  jimushoImage.src = "./assets/building_jimusho.png";
-  jimushoImage.onload = () => {
-    //backgroundLayer = buildBackgroundLayer();
-    render();
-  };
-  jimushoImage.onerror = () => {console.error("Failed to load image: ./assets/building_jimusho.png")};
-  
   const skyImage = new Image();
   skyImage.src = "./assets/bg_sky_normal.png";
   skyImage.onload = () => {
     //backgroundLayer = buildBackgroundLayer();
     render();
   };
-  skyImage.onerror = () => {console.error("Failed to load background image: ./assets/bg_sky_normal.png")};
+  skyImage.onerror = () => { console.error("Failed to load background image: ./assets/bg_sky_normal.png") };
 
   const farmBgImage = new Image();
   farmBgImage.src = "./assets/bg_grassland_normal.png";
@@ -123,15 +125,23 @@
     //backgroundLayer = buildBackgroundLayer();
     render();
   };
-  farmBgImage.onerror = () => {console.error("Failed to load background image: ./assets/bg_grassland_normal.png")};
+  farmBgImage.onerror = () => { console.error("Failed to load background image: ./assets/bg_grassland_normal.png") };
 
   const fenceImage = new Image();
-  fenceImage.src = "./assets/fence_bamboo.png";
+  fenceImage.src = "./assets/fence_wood.png";
   fenceImage.onload = () => {
+    //backgroundLayer = buildBackgroundLayer();
+    render();
+  };
+  fenceImage.onerror = () => { console.error("Failed to load image: ./assets/fence_bamboo.png") };
+
+  const jimushoImage = new Image();
+  jimushoImage.src = "./assets/jimusho_level1.png";
+  jimushoImage.onload = () => {
     backgroundLayer = buildBackgroundLayer();
     render();
   };
-  fenceImage.onerror = () => {console.error("Failed to load image: ./assets/fence_bamboo.png")};
+  jimushoImage.onerror = () => { console.error("Failed to load image: ./assets/building_jimusho.png") };
 
   backgroundLayer = buildBackgroundLayer();
 
@@ -139,6 +149,9 @@
   let lastUiRefreshAt = 0;
   let openPanel = null;
   let offlineInfo = "Offline progress is enabled.";
+  let selectedPigId = null;
+  let sellConfirmPigId = null;
+  let dragState = null;
 
   const savedText = safeStorageGet(SAVE_KEY);
   let world = savedText ? loadWorld(savedText) || createNewWorld() : createNewWorld();
@@ -156,8 +169,12 @@
   requestAnimationFrame(loop);
 
   canvas.addEventListener("pointerdown", onCanvasPointerDown);
+  canvas.addEventListener("pointermove", onCanvasPointerMove);
+  canvas.addEventListener("pointerup", onCanvasPointerUp);
+  canvas.addEventListener("pointercancel", onCanvasPointerCancel);
+
   cardScrimEl.addEventListener("click", closePanelCard);
-  closeCardBtn.addEventListener("click", closePanelCard);
+  //closeCardBtn.addEventListener("click", closePanelCard);
   cardBodyEl.addEventListener("click", onCardBodyClick);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
@@ -186,6 +203,26 @@
     updateHud();
     render();
   });
+
+  window.addEventListener("resize", () => {
+    if (openPanel === "pig") {
+      positionPigNoteToCanvas();
+    } else if (openPanel === "sellConfirm") {
+      positionCardToCanvasCenter();
+    }
+  });
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (openPanel === "pig") {
+        positionPigNoteToCanvas();
+      } else if (openPanel === "sellConfirm") {
+        positionCardToCanvasCenter();
+      }
+    },
+    { passive: true }
+  );
 
   window.addEventListener("pagehide", persistNow);
   window.addEventListener("beforeunload", persistNow);
@@ -508,6 +545,24 @@
     pig.hunger = clamp(pig.hunger + dtMin * CONFIG.HUNGER_GAIN_PER_MIN, 0, 100);
     applyStage(pig);
 
+    if (dragState && dragState.pigId === pig.id) {
+      //pig.vx = 0;
+      //pig.vy = 0;
+      pig.targetX = pig.x;
+      pig.targetY = pig.y;
+      return;
+    }
+
+    if (isPigSellPending(pig)) {
+      pig.x = 825;
+      pig.y = 210;
+      //pig.vx = 0;
+      //pig.vy = 0;
+      pig.targetX = pig.x;
+      pig.targetY = pig.y;
+      return
+    }
+
     const nearbyFood = nearestFood(pig);
     const hungry = pig.hunger >= CONFIG.HUNGRY_TO_SEEK_FOOD;
 
@@ -543,6 +598,50 @@
     pig.digestion = futureDigest;
   }
 
+  function isPigOnTruck(pig) {
+    const nearestX = clamp(pig.x, truck.x, truck.x + truck.w);
+    const nearestY = clamp(pig.y, truck.y, truck.y + truck.h);
+    return distance(pig.x, pig.y, nearestX, nearestY) <= pig.size;
+  }
+
+  function setCardVisualMode(mode) {
+    buildingCardEl.classList.remove("pig-info-card", "sell-confirm-card", "jimusho-manage-card");
+
+    if (mode === "pig") {
+      buildingCardEl.classList.add("pig-info-card");
+    } else if (mode === "sellConfirm") {
+      buildingCardEl.classList.add("sell-confirm-card");
+    } else if (mode === "jimusho") {
+      buildingCardEl.classList.add("jimusho-manage-card");
+    }
+  }
+
+  function positionCardToCanvasCenter() {
+    const rect = canvas.getBoundingClientRect();
+    buildingCardEl.style.left = `${rect.left + rect.width / 2}px`;
+    buildingCardEl.style.top = `${rect.top + rect.height / 2}px`;
+    buildingCardEl.style.right = "auto";
+    buildingCardEl.style.bottom = "auto";
+  }
+
+  function openSellConfirmPanel(pigId) {
+    const pig = world.pigs.find((item) => item.id === pigId);
+    if (!pig) return;
+
+    sellConfirmPigId = pigId;
+    openPanel = "sellConfirm";
+
+    setCardVisualMode("sellConfirm");
+    positionCardToCanvasCenter();
+
+    buildingCardEl.classList.add("show");
+    cardScrimEl.classList.add("show");
+    buildingCardEl.setAttribute("aria-hidden", "false");
+
+    updateHud();
+    render();
+  }
+
   function movePig(pig, dtSec) {
     const dx = pig.targetX - pig.x;
     const dy = pig.targetY - pig.y;
@@ -557,15 +656,83 @@
     const speed = pig.moveSpeed;
     const travel = Math.min(speed * dtSec, len);
 
-    pig.vx = (dx / len) * speed;
-    pig.vy = (dy / len) * speed;
+    const startX = pig.x;
+    const startY = pig.y;
 
-    pig.x += (dx / len) * travel;
-    pig.y += (dy / len) * travel;
+    // base direction: toward target
+    let dirX = dx / len;
+    let dirY = dy / len;
+
+    // soft avoidance: steer away from nearby pigs
+    let avoidX = 0;
+    let avoidY = 0;
+
+    for (const other of world.pigs) {
+      if (other === pig) continue;
+
+      const ox = pig.x - other.x;
+      const oy = pig.y - other.y;
+      const d = Math.hypot(ox, oy);
+
+      const avoidRadius = pig.size + other.size + 20;
+      if (d > 0.001 && d < avoidRadius) {
+        const strength = (avoidRadius - d) / avoidRadius;
+        avoidX += (ox / d) * strength;
+        avoidY += (oy / d) * strength;
+      }
+    }
+
+    // mix target direction + avoidance
+    dirX += avoidX * 1.35;
+    dirY += avoidY * 1.35;
+
+    const mixedLen = Math.hypot(dirX, dirY);
+    if (mixedLen > 0.001) {
+      dirX /= mixedLen;
+      dirY /= mixedLen;
+    } else {
+      dirX = dx / len;
+      dirY = dy / len;
+    }
+
+    pig.x += dirX * travel;
+    pig.y += dirY * travel;
 
     pig.x = clamp(pig.x, farm.x + pig.size, farm.x + farm.w - pig.size);
     pig.y = clamp(pig.y, farm.y + pig.size, farm.y + farm.h - pig.size);
+
+    // final overlap cleanup
+    for (let pass = 0; pass < 2; pass += 1) {
+      for (const other of world.pigs) {
+        if (other === pig) continue;
+
+        let ox = pig.x - other.x;
+        let oy = pig.y - other.y;
+        let d = Math.hypot(ox, oy);
+        const minDist = pig.size + other.size + 2;
+
+        if (d < minDist) {
+          if (d < 0.001) {
+            const angle = ((pig.id * 37 + other.id * 17) % 360) * Math.PI / 180;
+            ox = Math.cos(angle);
+            oy = Math.sin(angle);
+            d = 1;
+          }
+
+          const push = minDist - d;
+          pig.x += (ox / d) * push;
+          pig.y += (oy / d) * push;
+
+          pig.x = clamp(pig.x, farm.x + pig.size, farm.x + farm.w - pig.size);
+          pig.y = clamp(pig.y, farm.y + pig.size, farm.y + farm.h - pig.size);
+        }
+      }
+    }
+
+    pig.vx = dtSec > 0 ? (pig.x - startX) / dtSec : 0;
+    pig.vy = dtSec > 0 ? (pig.y - startY) / dtSec : 0;
   }
+
 
   function nearestFood(pig) {
     if (!world.foods.length) return null;
@@ -642,7 +809,7 @@
   // Economy / actions
   // -----------------------------------
   function getBuyPigPrice() {
-    return 65 + Math.max(0, world.pigs.length - 2) * 18;
+    return 35 + Math.max(0, world.pigs.length - 2) * 9;
   }
 
   function getPigSellPrice(pig) {
@@ -658,8 +825,8 @@
       15,
       Math.round(
         stageBase[pig.stage] +
-          pig.feedCount * 2 +
-          Math.min(28, pig.growthBonus * 0.08)
+        pig.feedCount * 2 +
+        Math.min(28, pig.growthBonus * 0.08)
       )
     );
   }
@@ -688,6 +855,10 @@
     return true;
   }
 
+  function isPigSellPending(pig) {
+    return openPanel === "sellConfirm" && sellConfirmPigId === pig.id;
+  }
+
   function sellPigById(pigId) {
     const pig = world.pigs.find((item) => item.id === pigId);
     if (!pig) {
@@ -703,6 +874,14 @@
     const value = getPigSellPrice(pig);
     world.money += value;
     world.pigs = world.pigs.filter((item) => item.id !== pig.id);
+
+    if (selectedPigId === pig.id) {
+      selectedPigId = null;
+    }
+    if (sellConfirmPigId === pig.id) {
+      sellConfirmPigId = null;
+    }
+
     offlineInfo = `Sold ${pig.name} for $${value}.`;
     return true;
   }
@@ -784,9 +963,27 @@
     event.preventDefault();
     syncToNow(false);
 
-    const rect = canvas.getBoundingClientRect();
-    const x = (event.clientX - rect.left) * (canvas.width / rect.width);
-    const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+    const { x, y } = getCanvasPointerPosition(event);
+
+    const pig = pointInRect(x, y, farm) ? findPigAt(x, y) : null;
+    if (pig) {
+      dragState = {
+        pointerId: event.pointerId,
+        pigId: pig.id,
+        startX: x,
+        startY: y,
+        offsetX: pig.x - x,
+        offsetY: pig.y - y,
+        moved: false,
+        lastAt: Date.now()
+      };
+
+      try {
+        canvas.setPointerCapture(event.pointerId);
+      } catch (error) { }
+
+      return;
+    }
 
     if (pointInRect(x, y, jimusho)) {
       togglePanel("jimusho");
@@ -808,6 +1005,130 @@
     }
   }
 
+  function getCanvasPointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) * (canvas.width / rect.width),
+      y: (event.clientY - rect.top) * (canvas.height / rect.height)
+    };
+  }
+
+  function findPigAt(x, y) {
+    for (let i = world.pigs.length - 1; i >= 0; i -= 1) {
+      const pig = world.pigs[i];
+
+      const dx = x - pig.x;
+      const dy = y - (pig.y - pig.size * 0.15);
+      const rx = pig.size * 1.15;
+      const ry = pig.size * 0.95;
+
+      if ((dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1.25) {
+        return pig;
+      }
+    }
+    return null;
+  }
+
+  function dragPigToPointer(pig, x, y) {
+    if (!dragState) return;
+
+    const now = Date.now();
+    const dtSec = Math.max(0.001, (now - dragState.lastAt) / 1000);
+
+    const nextX = clamp(
+      x + dragState.offsetX,
+      farm.x + pig.size,
+      farm.x + farm.w - pig.size
+    );
+    const nextY = clamp(
+      y + dragState.offsetY,
+      farm.y + pig.size,
+      farm.y + farm.h - pig.size
+    );
+
+    pig.vx = (nextX - pig.x) / dtSec;
+    pig.vy = (nextY - pig.y) / dtSec;
+
+    pig.x = nextX;
+    pig.y = nextY;
+
+    separatePigFromOthers(pig);
+
+    pig.targetX = pig.x;
+    pig.targetY = pig.y;
+
+    dragState.lastAt = now;
+  }
+
+  function separatePigFromOthers(pig) {
+    for (let pass = 0; pass < 3; pass += 1) {
+      for (const other of world.pigs) {
+        if (other === pig) continue;
+
+        let dx = pig.x - other.x;
+        let dy = pig.y - other.y;
+        let d = Math.hypot(dx, dy);
+        const minDist = pig.size + other.size + 2;
+
+        if (d < minDist) {
+          if (d < 0.001) {
+            const angle = ((pig.id * 37 + other.id * 17) % 360) * Math.PI / 180;
+            dx = Math.cos(angle);
+            dy = Math.sin(angle);
+            d = 1;
+          }
+
+          const push = minDist - d;
+          pig.x += (dx / d) * push;
+          pig.y += (dy / d) * push;
+
+          pig.x = clamp(pig.x, farm.x + pig.size, farm.x + farm.w - pig.size);
+          pig.y = clamp(pig.y, farm.y + pig.size, farm.y + farm.h - pig.size);
+        }
+      }
+    }
+  }
+
+  function positionPigNoteToCanvas() {
+    const canvasRect = canvas.getBoundingClientRect();
+    const noteRect = buildingCardEl.getBoundingClientRect();
+    const margin = 12;
+
+    const centerX = canvasRect.right - margin - noteRect.width / 2;
+    const centerY = canvasRect.bottom - margin - noteRect.height / 2;
+
+    buildingCardEl.style.left = `${centerX}px`;
+    buildingCardEl.style.top = `${centerY}px`;
+    buildingCardEl.style.right = "auto";
+    buildingCardEl.style.bottom = "auto";
+  }
+
+  function clearCardFixedPosition() {
+    buildingCardEl.style.left = "";
+    buildingCardEl.style.top = "";
+    buildingCardEl.style.right = "";
+    buildingCardEl.style.bottom = "";
+  }
+
+  function openPigPanel(pigId) {
+    const pig = world.pigs.find((item) => item.id === pigId);
+    if (!pig) return;
+
+    selectedPigId = pigId;
+    sellConfirmPigId = null;
+    openPanel = "pig";
+
+    setCardVisualMode("pig");
+    positionPigNoteToCanvas();
+
+    buildingCardEl.classList.add("show");
+    cardScrimEl.classList.add("show");
+    buildingCardEl.setAttribute("aria-hidden", "false");
+
+    updateHud();
+    render();
+  }
+
   function onCardBodyClick(event) {
     const button = event.target.closest("[data-action]");
     if (!button) return;
@@ -816,6 +1137,7 @@
 
     const action = button.dataset.action;
     let changed = false;
+    let shouldClose = false;
 
     if (action === "buy-pig") {
       changed = buyPig();
@@ -830,11 +1152,22 @@
         offlineInfo = `${FOOD_TYPES[foodId].name} selected.`;
         changed = true;
       }
+    } else if (action === "confirm-sell") {
+      changed = sellPigById(Number(button.dataset.pigId));
+      shouldClose = true;
+    } else if (action === "cancel-sell") {
+      offlineInfo = "Sale canceled";
+      shouldClose = true;
+    }
+
+    if (shouldClose) {
+      closePanelCard();
     }
 
     if (changed) {
       persistNow();
     }
+
     updateHud();
     render();
   }
@@ -845,19 +1178,151 @@
       return;
     }
 
+    if (type === "jimusho") {
+      selectedPigId = null;
+      sellConfirmPigId = null;
+      setCardVisualMode("jimusho");
+      clearCardFixedPosition();
+    } else {
+      setCardVisualMode(null);
+      clearCardFixedPosition();
+    }
+
     openPanel = type;
     buildingCardEl.classList.add("show");
     cardScrimEl.classList.add("show");
     buildingCardEl.setAttribute("aria-hidden", "false");
+
     updateHud();
     render();
   }
 
   function closePanelCard() {
+    const hadCustomMode =
+      buildingCardEl.classList.contains("pig-info-card") ||
+      buildingCardEl.classList.contains("sell-confirm-card") ||
+      buildingCardEl.classList.contains("jimusho-manage-card");
+
     openPanel = null;
+    selectedPigId = null;
+    sellConfirmPigId = null;
+
     buildingCardEl.classList.remove("show");
     cardScrimEl.classList.remove("show");
     buildingCardEl.setAttribute("aria-hidden", "true");
+
+    cardTitleEl.textContent = "";
+    cardSubtitleEl.textContent = "";
+    cardBodyEl.innerHTML = "";
+
+    if (hadCustomMode) {
+      const onEnd = (event) => {
+        if (event.target !== buildingCardEl) return;
+        buildingCardEl.removeEventListener("transitionend", onEnd);
+
+        if (!openPanel) {
+          setCardVisualMode(null);
+          clearCardFixedPosition();
+        }
+      };
+
+      buildingCardEl.addEventListener("transitionend", onEnd);
+    } else {
+      setCardVisualMode(null);
+      clearCardFixedPosition();
+    }
+
+    updateHud();
+    render();
+  }
+
+  function onCanvasPointerMove(event) {
+    if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+    event.preventDefault();
+    syncToNow(false);
+
+    const pig = world.pigs.find((item) => item.id === dragState.pigId);
+    if (!pig) {
+      dragState = null;
+      return;
+    }
+
+    const { x, y } = getCanvasPointerPosition(event);
+
+    if (!dragState.moved && distance(x, y, dragState.startX, dragState.startY) > 6) {
+      dragState.moved = true;
+    }
+
+    dragPigToPointer(pig, x, y);
+    render();
+  }
+
+  function onCanvasPointerUp(event) {
+    if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+    event.preventDefault();
+    syncToNow(false);
+
+    const pig = world.pigs.find((item) => item.id === dragState.pigId);
+    const { x, y } = getCanvasPointerPosition(event);
+    const wasMoved = dragState.moved;
+
+    if (pig) {
+      if (wasMoved) {
+        dragPigToPointer(pig, x, y);
+        pig.vx = 0;
+        pig.vy = 0;
+        pig.targetX = pig.x;
+        pig.targetY = pig.y;
+
+        if (isPigOnTruck(pig)) {
+          try {
+            canvas.releasePointerCapture(event.pointerId);
+          } catch (error) { }
+
+          dragState = null;
+          openSellConfirmPanel(pig.id);
+          return;
+        }
+
+        offlineInfo = `${pig.name} moved.`;
+        persistNow();
+      } else {
+        pig.vx = 0;
+        pig.vy = 0;
+        pig.targetX = pig.x;
+        pig.targetY = pig.y;
+        openPigPanel(pig.id);
+      }
+    }
+
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch (error) { }
+
+    dragState = null;
+    updateHud();
+    render();
+  }
+
+  function onCanvasPointerCancel(event) {
+    if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+    const pig = world.pigs.find((item) => item.id === dragState.pigId);
+    if (pig) {
+      pig.vx = 0;
+      pig.vy = 0;
+      pig.targetX = pig.x;
+      pig.targetY = pig.y;
+      separatePigFromOthers(pig);
+    }
+
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch (error) { }
+
+    dragState = null;
     updateHud();
     render();
   }
@@ -881,7 +1346,65 @@
       cardTitleEl.textContent = "Farm Office";
       cardSubtitleEl.textContent = "Check farm status, buy/sell food and pigs.";
       cardBodyEl.innerHTML = renderJimushoCardHtml();
+      return;
     }
+
+    if (openPanel === "pig") {
+      const pig = world.pigs.find((item) => item.id === selectedPigId);
+      if (!pig) {
+        cardTitleEl.textContent = "";
+        cardSubtitleEl.textContent = "";
+        cardBodyEl.innerHTML = "";
+        return;
+      }
+      cardTitleEl.textContent = "";
+      cardSubtitleEl.textContent = "";
+      cardBodyEl.innerHTML = renderPigNoteHtml(pig);
+      return;
+    }
+
+    if (openPanel === "sellConfirm") {
+      const pig = world.pigs.find((item) => item.id === sellConfirmPigId);
+      if (!pig) {
+        cardTitleEl.textContent = "";
+        cardSubtitleEl.textContent = "";
+        cardBodyEl.innerHTML = "";
+        return;
+      }
+
+      cardTitleEl.textContent = "";
+      cardSubtitleEl.textContent = "";
+      cardBodyEl.innerHTML = renderSellConfirmHtml(pig);
+      return;
+    }
+  }
+
+  function renderSellConfirmHtml(pig) {
+    const sellable = canSellPig(pig);
+    const price = getPigSellPrice(pig);
+
+    return `
+      <div class="sell-confirm-wrap">
+        <div class="sell-confirm-text">
+          ${sellable
+        ? `Sell <strong>${escapeHtml(pig.name)}</strong> for <strong>$${price}</strong>?`
+        : `<strong>${escapeHtml(pig.name)}</strong> cannot be sold yet. Adult required.`
+      }
+        </div>
+
+        <div class="sell-confirm-actions">
+          ${sellable
+        ? `
+                <button class="secondary" data-action="cancel-sell">No</button>
+                <button class="danger" data-action="confirm-sell" data-pig-id="${pig.id}">Yes</button>
+              `
+        : `
+                <button class="secondary" data-action="cancel-sell">OK</button>
+              `
+      }
+        </div>
+      </div>
+    `;
   }
 
   function renderHousePigRow(pig) {
@@ -911,10 +1434,6 @@
             ${pig.feedCount}
           </div>
           <div class="meta-item">
-            <span class="label">Next poop</span>
-            ${nextPoopMs === null ? "-" : formatDurationShort(nextPoopMs)}
-          </div>
-          <div class="meta-item">
             <span class="label">Last fed</span>
             ${pig.lastFedAt > 0 ? formatRelative(pig.lastFedAt) : "never"}
           </div>
@@ -938,6 +1457,159 @@
       </div>
     `;
   }
+
+  function getPigCardPhotoSrc() {
+    return "./assets/pig_normal_adult.png";
+  }
+
+  function getPigCardPhotoWidth(pig) {
+    // Adult(size 26) を基準に note 上の幅を決める
+    // Baby は小さく、Old / Old Old は大きく見せる
+    return clamp(Math.round(100 * (pig.size / 26)), 54, 118);
+  }
+
+  function renderPigNoteHtml(pig) {
+    const nextPoopMs = pig.digestion.length
+      ? Math.max(0, Math.min(...pig.digestion) - world.lastUpdateAt)
+      : null;
+
+    const hunger = Math.round(pig.hunger);
+    const sellPrice = getPigSellPrice(pig);
+
+    return `
+      <div class="pig-note-layout">
+        <div class="pig-note-left">
+          <div class="pig-note-photo-box">
+            <img
+              class="pig-note-photo"
+              src="${getPigCardPhotoSrc()}"
+              alt="${escapeHtml(pig.name)}"
+              style="width:${getPigCardPhotoWidth(pig)}px"
+            >
+            <div class="pig-note-name">${escapeHtml(pig.name)}</div>
+          </div>
+
+          <div class="pig-note-left-bottom">
+            <div class="pig-note-mini">
+              <span class="pig-note-mini-label">Stage</span>
+              <strong>${pig.stage}</strong>
+            </div>
+
+            <div class="pig-note-mini">
+              <span class="pig-note-mini-label">Age</span>
+              <strong>${formatMinutes(pig.ageMinutes)}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="pig-note-right">
+          <div class="pig-note-row">
+            <span class="pig-note-label">Hunger</span>
+            <strong>${hunger}%</strong>
+          </div>
+
+          <div class="pig-note-meter">
+            <span style="width:${hunger}%"></span>
+          </div>
+
+          <div class="pig-note-row">
+            <span class="pig-note-label">Feed count</span>
+            <strong>${pig.feedCount}</strong>
+          </div>
+
+          <div class="pig-note-row">
+            <span class="pig-note-label">Growth bonus</span>
+            <strong>${Math.round(pig.growthBonus)}</strong>
+          </div>
+
+          <div class="pig-note-row">
+            <span class="pig-note-label">Last fed</span>
+            <strong>${pig.lastFedAt > 0 ? formatRelative(pig.lastFedAt) : "never"}</strong>
+          </div>
+
+          <div class="pig-note-row">
+            <span class="pig-note-label">Value</span>
+            <strong>$${sellPrice}</strong>
+          </div>
+
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPigCardHtml(pig) {
+    const nextPoopMs = pig.digestion.length
+      ? Math.max(0, Math.min(...pig.digestion) - world.lastUpdateAt)
+      : null;
+
+    const hunger = Math.round(pig.hunger);
+    const sellPrice = getPigSellPrice(pig);
+
+    return `
+      <div class="sheet-top">
+        <div class="summary-chip">Name: ${escapeHtml(pig.name)}</div>
+        <div class="summary-chip">Stage: ${pig.stage}</div>
+        <div class="summary-chip">ID: ${pig.id}</div>
+        <div class="summary-chip">Value: $${sellPrice}</div>
+      </div>
+
+      <div class="sheet-row">
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="label">Age</span>
+            ${formatMinutes(pig.ageMinutes)}
+          </div>
+          <div class="meta-item">
+            <span class="label">Hunger</span>
+            ${hunger}%
+          </div>
+          <div class="meta-item">
+            <span class="label">Feed count</span>
+            ${pig.feedCount}
+          </div>
+          <div class="meta-item">
+            <span class="label">Growth bonus</span>
+            ${Math.round(pig.growthBonus)}
+          </div>
+          <div class="meta-item">
+            <span class="label">Last fed</span>
+            ${pig.lastFedAt > 0 ? formatRelative(pig.lastFedAt) : "never"}
+          </div>
+          <div class="meta-item">
+            <span class="label">Digestion queue</span>
+            ${pig.digestion.length}
+          </div>
+          <div class="meta-item">
+            <span class="label">Move speed</span>
+            ${pig.moveSpeed}
+          </div>
+          <div class="meta-item">
+            <span class="label">Target</span>
+            ${Math.round(pig.targetX)}, ${Math.round(pig.targetY)}
+          </div>
+          <div class="meta-item">
+            <span class="label">Variant</span>
+            ${pig.variant}
+          </div>
+          <div class="meta-item">
+            <span class="label">Can sell</span>
+            ${canSellPig(pig) ? "yes" : "no"}
+          </div>
+        </div>
+
+        <div class="meter-label">Hunger ${hunger}%</div>
+        <div class="progress">
+          <span style="width:${hunger}%"></span>
+        </div>
+
+        <p class="sheet-note">
+          Click a pig to open this card.<br>
+          Drag a pig anywhere in the farm to move it manually.
+        </p>
+      </div>
+    `;
+  }
+
   function renderJimushoCardHtml() {
     const selectedFood = FOOD_TYPES[world.selectedFoodType];
     const buyPrice = getBuyPigPrice();
@@ -1071,7 +1743,7 @@
     const iconSize = 32;
 
     if (moneyImage.complete && moneyImage.naturalWidth) {
-        ctx.drawImage(moneyImage, x, y, iconSize, iconSize);
+      ctx.drawImage(moneyImage, x, y, iconSize, iconSize);
     }
 
     ctx.font = "bold 24px sans-serif";
@@ -1082,7 +1754,7 @@
     const text = `${world.money}`;
     ctx.strokeText(text, x + iconSize + 30, y + 25);
     ctx.fillText(text, x + iconSize + 30, y + 25);
-}
+  }
 
   function drawBuildingHighlight(rect) {
     ctx.strokeStyle = "#ffd166";
@@ -1106,39 +1778,44 @@
     ctx.stroke();
   }
 
+  function getPigShadowColor(pig) {
+    const stageIndex = Math.max(0, STAGE_ORDER.indexOf(pig.stage));
+    const alpha = 0.10 + stageIndex * 0.04;
+    return `rgba(0,0,0,${alpha.toFixed(2)})`;
+  }
+
   function drawPig(pig) {
-    drawShadow(pig.x, pig.y + pig.size * 0.4, pig.size * 1.05, pig.size * 0.35, "rgba(0,0,0,0.18)");
-    if (!pigImage.complete || !pigImage.naturalWidth) {return;}
+    const isDragging = !!dragState && dragState.pigId === pig.id;
+    const isSellPending = isPigSellPending(pig);
+    const speedNow = Math.hypot(pig.vx, pig.vy);
+    const moving = speedNow > 1;
+    const t = (Date.now() + pig.animOffset) * 0.012;
+    const sway = isDragging ? Math.sin(t * 1.35) * 0.3 : moving ? Math.sin(t) * 0.05 : 0;
+    const bobY = isDragging ? Math.sin(t * 2.7) * 2.5 : moving ? Math.sin(t * 2) * 1.5 : 0;
+    drawShadow(pig.x, pig.y + pig.size * 0.4, pig.size * 1.05, pig.size * 0.35, getPigShadowColor(pig));
+    if (!pigImage.complete || !pigImage.naturalWidth) return;
     const aspect = pigImage.naturalWidth / pigImage.naturalHeight;
-    // サイズを整数にする
     const drawH = Math.round(pig.size * 2.4);
     const drawW = Math.round(drawH * aspect);
-    // 位置も整数にする
     const px = Math.round(pig.x);
     const py = Math.round(pig.y);
     ctx.save();
-    // pig だけ smoothing ON
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    ctx.translate(px, py); 
-    const facing = pig.vx < -0.5 ? 1 : -1; //移動方向で方向を検知
-    ctx.scale(facing, 1); //移動方向に合わせて画像を左右変転
+    ctx.translate(px, py + bobY);
+    ctx.rotate(sway);
+    const facing = pig.vx < -0.5 ? 1 : -1;
+    ctx.scale(facing, 1);
     ctx.drawImage(pigImage, Math.round(-drawW / 2), Math.round(-drawH * 0.7), drawW, drawH);
     ctx.restore();
 
-    const label = `${pig.name} • ${pig.stage}`;
-    ctx.font = "bold 12px sans-serif";
-    ctx.textAlign = "center";
-    const width = ctx.measureText(label).width + 12;
-    const labelX = px - width / 2;
-    const labelY = py - pig.size - 24;
-
-    ctx.fillStyle = "rgba(12, 26, 39, 0.82)";
-    ctx.fillRect(labelX, labelY, width, 18);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(label, px, labelY + 13);
+    if (selectedPigId === pig.id && highlightImage.complete && highlightImage.naturalWidth) {
+      const highlightW = Math.round(drawW * 0.6);
+      const highlightH = Math.round(highlightW * (highlightImage.naturalHeight / highlightImage.naturalWidth));
+      ctx.drawImage(highlightImage, Math.round(px - highlightW / 2), Math.round(py - drawH * 1.55), highlightW, highlightH);
+    }
   }
-  
+
   function buildBackgroundLayer() {
     const bg = document.createElement("canvas");
     bg.width = canvas.width;
@@ -1158,20 +1835,25 @@
 
     if (farmBgImage.complete && farmBgImage.naturalWidth) {
       c.drawImage(farmBgImage, 0, BACKGROUND_SPLIT_Y, bg.width, bg.height - BACKGROUND_SPLIT_Y);
-    } else {
-      //drawTiledRect(c, sprites.tiles.ids.dirt, 0, BACKGROUND_SPLIT_Y, bg.width, bg.height - BACKGROUND_SPLIT_Y);
-      drawTiledRect(c, sprites.tiles.ids.grassA, farm.x, farm.y, farm.w, farm.h, true);
     }
-    drawJimusho(c);
+
     drawFence(c, farm);
+
+    drawJimusho(c);
+
     return bg;
   }
 
   function drawJimusho(c) {
-    if (jimushoImage.complete && jimushoImage.naturalWidth) {
-      c.drawImage(jimushoImage, jimusho.x, jimusho.y, jimusho.w, jimusho.h);
-      return;
-    }
+    if (!jimushoImage.complete || !jimushoImage.naturalWidth) { return };
+    c.drawImage(jimushoImage, jimusho.x, jimusho.y, jimusho.w, jimusho.h);
+    if (truckImage.complete && truckImage.naturalWidth) {
+      c.save();
+      c.translate(truck.x + truck.w, truck.y);
+      c.scale(-1, 1);
+      c.drawImage(truckImage, 0, 0, truck.w, truck.h);
+      c.restore();
+    };
   }
 
   function drawFence(c, rect) {
@@ -1255,89 +1937,6 @@
     return {
       tiles: createTileSheet()
     };
-  }
-
-
-  function drawPigFrame(c, ox, oy, fw, fh, scale, frame, palette) {
-    const bodyBob = frame % 2 === 0 ? 0 : -0.6;
-    const legA = frame === 1 ? 1.5 : frame === 3 ? -1.5 : 0;
-    const legB = -legA;
-
-    c.save();
-    c.translate(ox + fw / 2, oy + fh / 2 + 5);
-    c.scale(scale, scale);
-
-    c.fillStyle = "rgba(0,0,0,0.18)";
-    c.beginPath();
-    c.ellipse(-1, 11, 15, 4.5, 0, 0, Math.PI * 2);
-    c.fill();
-
-    c.strokeStyle = palette.outline;
-    c.lineWidth = 1.5;
-    c.beginPath();
-    c.moveTo(-16, -1);
-    c.quadraticCurveTo(-20, -6, -18, -11);
-    c.quadraticCurveTo(-14, -14, -14, -8);
-    c.stroke();
-
-    drawLeg(c, -10, 6 + legA, 4, 8, palette);
-    drawLeg(c, -3, 7 + legB, 4, 8, palette);
-    drawLeg(c, 6, 7 + legA, 4, 8, palette);
-    drawLeg(c, 13, 6 + legB, 4, 8, palette);
-
-    c.fillStyle = palette.body;
-    c.strokeStyle = palette.outline;
-    c.beginPath();
-    c.ellipse(-2, bodyBob, 16, 10, 0, 0, Math.PI * 2);
-    c.fill();
-    c.stroke();
-
-    c.fillStyle = palette.patch;
-    c.fillRect(-11, -2, 4, 2);
-    c.fillRect(2, 2, 3, 2);
-
-    c.fillStyle = palette.body;
-    c.beginPath();
-    c.arc(16, -1 + bodyBob, 7, 0, Math.PI * 2);
-    c.fill();
-    c.stroke();
-
-    //c.fillStyle = palette.ear;
-    //drawTriangle(c, 13, -7 + bodyBob, 16, -12 + bodyBob, 18, -6 + bodyBob);
-    //drawTriangle(c, 18, -6 + bodyBob, 23, -11 + bodyBob, 22, -4 + bodyBob);
-
-    c.fillStyle = palette.snout;
-    c.beginPath();
-    c.ellipse(21, 2 + bodyBob, 4.5, 3.5, 0, 0, Math.PI * 2);
-    c.fill();
-    c.stroke();
-
-    c.fillStyle = "#b05d78";
-    c.fillRect(19.2, 1 + bodyBob, 1.4, 1.4);
-    c.fillRect(21.8, 1 + bodyBob, 1.4, 1.4);
-
-    c.fillStyle = "#222";
-    c.fillRect(16, -5 + bodyBob, 1.6, 1.6);
-
-    c.restore();
-  }
-
-  function drawLeg(c, x, y, w, h, palette) {
-    c.fillStyle = palette.leg;
-    c.fillRect(x, y, w, h);
-    c.strokeStyle = palette.outline;
-    c.lineWidth = 1;
-    c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-  }
-
-  function drawTriangle(c, x1, y1, x2, y2, x3, y3) {
-    c.beginPath();
-    c.moveTo(x1, y1);
-    c.lineTo(x2, y2);
-    c.lineTo(x3, y3);
-    c.closePath();
-    c.fill();
-    c.stroke();
   }
 
   function createTileSheet() {
