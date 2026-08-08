@@ -131,8 +131,8 @@ canvas {
   width: min(960px, calc(100vw - 16px));
   max-height: 80vh;
   background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: 20px 20px 0 0;
+  /*border: 1px solid var(--panel-border);*/
+  /*border-radius: 20px 20px 0 0;*/
   box-shadow: 0 -12px 32px var(--shadow);
   transition: transform 0.24s ease, opacity 0.24s ease;
   opacity: 0;
@@ -245,8 +245,8 @@ button:disabled {
 
 .sheet-row {
   background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 14px;
+  /*border: 1px solid var(--card-border);
+  border-radius: 14px;*/
   padding: 12px;
 }
 
@@ -500,6 +500,25 @@ button:disabled {
   display: block;
   height: 100%;
   background: rgba(110, 80, 52, 0.72);
+}
+
+.arrow-mark {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin: 5px;
+}
+
+.arrow-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.arrow-button img {
+    width: 64px;
+    height: auto;
 }
 
 /* slightly tighter on very small screens */
@@ -791,6 +810,8 @@ button:disabled {
 .building-card.jimusho-manage-card {
   position: absolute;
 
+  padding: 20px;
+
   right: 20px;
   bottom: 20px;
   border-radius: 20px;
@@ -801,11 +822,11 @@ button:disabled {
   transform: none;
 
   transform: translateY(18px);
-  width: min(320px, calc(100vw - 20px));
-  aspect-ratio: 320 / 590;
+  width: min(380px, calc(100vw - 20px));
+  aspect-ratio: 210 / 290;
   max-height: none;
 
-  background: url("./assets/farmmanagement.png") no-repeat center center;
+  background: url("./assets/card_note3.png") no-repeat center center;
   background-size: 100% 100%;
 
   border: none;
@@ -815,6 +836,7 @@ button:disabled {
   color: #4b3626;
   font-family: var(--paper-font);
 }
+
 
 .building-card.jimusho-manage-card.show {
   transform: translateY(0);
@@ -852,11 +874,39 @@ button:disabled {
   left: 0;
   right: 0;
   bottom: 18px;
-  padding: 0 14px 0 14px;
+  padding: 0 30px 0 30px;
   max-height: none;
-  overflow: auto;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
   color: #4b3626;
   font-family: var(--paper-font);
+}
+
+.animal-buy-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+
+.animal-buy-actions button {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 150px;
+
+  padding: 6px 10px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.building-card.jimusho-manage-card .building-card__body::-webkit-scrollbar {
+  display: none;
 }
 
 /* fit content into smaller paper */
@@ -883,6 +933,12 @@ button:disabled {
   font-family: var(--paper-font);
 }
 
+.building-card.jimusho-manage-card .sheet-note img{
+  padding-bottom: 1px;
+  width: 20px;
+  height: 20px;
+}
+
 .building-card.jimusho-manage-card .full-btn {
   width: 100%;
   min-height: 38px;
@@ -900,7 +956,8 @@ button:disabled {
 .building-card.jimusho-manage-card .sheet-row {
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(91, 67, 46, 0.16);
-  border-radius: 10px;
+  border: none;
+  border-radius: 0px;
   padding: 8px;
 }
 
@@ -981,6 +1038,131 @@ button:disabled {
   padding: 6px 8px;
   font-size: 11px;
   font-family: var(--paper-font);
+}
+
+.animal-tabs { 
+  display: grid; 
+  grid-template-columns: repeat(5, 1fr); 
+  gap: 6px; 
+  margin-bottom: 12px; 
+} 
+
+.animal-tab {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: var(--paper-font);
+  font-size: 14px;
+  color: #7a5d45;
+  transition: all 0.2s ease;
+
+  outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+
+  border: 2px solid transparent;
+  border-radius: 4px;
+}
+
+.animal-tab:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.animal-tab:active {
+  transform: scale(0.95);
+  background: none;
+  border-color: transparent;
+}
+
+.animal-tab:hover {
+  border: 2px solid #7a5d45;
+  border-radius: 4px;
+  background: none;
+}
+
+.animal-tab.active {
+  border: 2px solid #4a3520;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #070707;
+  background: none;
+}
+
+.animal-tab:focus-visible {
+  outline: none;
+}
+
+.animal-tab::-moz-focus-inner {
+  border: 0;
+}
+
+
+.animal-buy-row {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.animal-buy-row .animal-buy-image {
+  flex: 0 0 80px;
+  height: 50px;
+  min-width: 0;
+}
+
+.animal-buy-row .animal-buy-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 0;
+}
+
+.animal-buy-image img { 
+  max-width: 100%; 
+  max-height: 100%; 
+  object-fit: contain; 
+}
+
+.animal-buy-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.animal-buy-actions .price-tag {
+  flex: 0 0 auto;
+  font-weight: bold;
+  color: #a88921; 
+}
+
+.animal-buy-actions button {
+  flex: 0 0 auto;
+  background: none;
+  margin-left: auto; /* Pushes button to the right */  
+  border: none;
+  cursor: pointer;
+}
+
+.animal-buy-actions button img {
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+.animal-buy-actions button img:hover {
+  transform: scale(1.3);
+}
+
+.animal-buy-actions button img:active {
+  transform: scale(0.9);
 }
 
 @media (max-width: 480px) {
