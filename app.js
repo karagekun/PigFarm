@@ -15,16 +15,82 @@
     MAX_PIGS: 20,
     MAX_COWS: 10,
     MAX_DUCKS: 40,
-    MAX_CHICKENS: 40
+    MAX_CHICKENS: 40,
+    MAX_CORN: 99,
+    MAX_CARROT: 99,
+    MAX_CABBAGE: 99,
+    MAX_KABU: 99,
+    MAX_SWEETPOTATO: 99,
+    MAX_APPLE: 99
   };
 
   const FOOD_TYPES = {
-    corn: { id: "corn", label: "Corn", packQty: 5, packCost: 1, hungerRelief: 3, growthBonus: 3, spriteSrc: "./assets/food_corn.png" },
-    carrot: { id: "carrot", label: "Carrot", packQty: 5, packCost: 1, hungerRelief: 3, growthBonus: 3, spriteSrc: "./assets/food_carrot.png" },
-    cabbage: { id: "cabbage", label: "Cabbage", packQty: 5, packCost: 1, hungerRelief: 3, growthBonus: 3, spriteSrc: "./assets/food_cabbage.png" },
-    kabu: { id: "kabu", label: "Kabu", packQty: 5, packCost: 1, hungerRelief: 3, growthBonus: 3, spriteSrc: "./assets/food_kabu.png" },
-    sweetpotato: { id: "sweetpotato", label: "Sweetpotato", packQty: 5, packCost: 1, hungerRelief: 3, growthBonus: 3, spriteSrc: "./assets/food_sweetpotato.png" },
-    apple: { id: "apple", label: "Apple", packQty: 5, packCost: 1, hungerRelief: 3, growthBonus: 3, spriteSrc: "./assets/food_apple.png" }
+    corn: {
+      id: "corn",
+      label: "Corn",
+      comment: "better than nothing",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3,
+      maxCount: CONFIG.MAX_CORN,
+      spriteSrc: "./assets/food_corn.png"
+    },
+    carrot: {
+      id: "carrot",
+      label: "Carrot",
+      comment: "keep you from hunger",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3,
+      maxCount: CONFIG.MAX_CARROT,
+      spriteSrc: "./assets/food_carrot.png"
+    },
+    cabbage: {
+      id: "cabbage",
+      label: "Cabbage",
+      comment: "can't stop chewing",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3,
+      maxCount: CONFIG.MAX_CABBAGE,
+      spriteSrc: "./assets/food_cabbage.png"
+    },
+    kabu: {
+      id: "kabu",
+      label: "Kabu",
+      comment: "juicy water bomb",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3,
+      maxCount: CONFIG.MAX_KABU,
+      spriteSrc: "./assets/food_kabu.png"
+    },
+    sweetpotato: {
+      id: "sweetpotato",
+      label: "Sweetpotato",
+      comment: "sweet oh sweet",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3,
+      maxCount: CONFIG.MAX_SWEETPOTATO,
+      spriteSrc: "./assets/food_sweetpotato.png"
+    },
+    apple: {
+      id: "apple",
+      label: "Apple",
+      comment: "pure happiness",
+      packQty: 5,
+      packCost: 1,
+      hungerRelief: 3,
+      growthBonus: 3,
+      maxCount: CONFIG.MAX_APPLE,
+      spriteSrc: "./assets/food_apple.png"
+    }
   };
 
   const FOOD_IDS = Object.keys(FOOD_TYPES);
@@ -144,35 +210,34 @@
   };
 
   const ANIMAL_KINDS = Object.keys(ANIMAL_TYPES);
-  //console.log(ANIMAL_KINDS);
 
   const PIG_SUBKINDS = {
-    normal: { id: "normal", label: "Normal Pig", spriteSrc: "./assets/pig_normal.png" },
-    black: { id: "black", label: "Black Pig", spriteSrc: "./assets/pig_black.png" }
+    normal: { id: "normal", label: "Pig", comment: "big white pig", spriteSrc: "./assets/pig_normal.png" },
+    black: { id: "black", label: "Black Pig", comment: "BBP", spriteSrc: "./assets/pig_black.png" }
   };
 
   const COW_SUBKINDS = {
-    normal: { id: "normal", label: "Normal Cow", spriteSrc: "./assets/cow_normal.png" },
-    black: { id: "black", label: "Black Wagyu", spriteSrc: "./assets/cow_blackwagyu.png" },
-    buffalo: { id: "buffalo", label: "Buffalo", spriteSrc: "./assets/cow_buffalo.png" },
-    bison: { id: "bison", label: "Bison Bison", spriteSrc: "./assets/cow_bison.png" },
-    cow: { id: "cow", label: "Dairy Cow", spriteSrc: "./assets/cow_dairycow.png" },
-    highland: { id: "highland", label: "Highland Cow", spriteSrc: "./assets/cow_highland.png" }
+    normal: { id: "normal", label: "Cow", comment: "cow? cattle?", spriteSrc: "./assets/cow_normal.png" },
+    black: { id: "black", label: "Black Wagyu", comment: "what's your rank?", spriteSrc: "./assets/cow_blackwagyu.png" },
+    buffalo: { id: "buffalo", label: "Buffalo", comment: "cow not router", spriteSrc: "./assets/cow_buffalo.png" },
+    bison: { id: "bison", label: "Bison Bison", comment: "street fighter!", spriteSrc: "./assets/cow_bison.png" },
+    cow: { id: "cow", label: "Dairy Cow", comment: "for drink, not for eat", spriteSrc: "./assets/cow_dairycow.png" },
+    highland: { id: "highland", label: "Highland Cow", comment: "scottish boy", spriteSrc: "./assets/cow_highland.png" }
   };
 
   const CHICKEN_SUBKINDS = {
-    normal: { id: "normal", label: "Normal Chicken", spriteSrc: "./assets/chicken_normal.png" },
-    brown: { id: "brown", label: "Brown Chicken", spriteSrc: "./assets/chicken_brown.png" },
-    black: { id: "black", label: "Black Bone Chicken", spriteSrc: "./assets/chicken_ukokkei.png" }
+    normal: { id: "normal", label: "Chicken", comment: "kentucky fri...", spriteSrc: "./assets/chicken_normal.png" },
+    brown: { id: "brown", label: "Brown Chicken", comment: "jolli...", spriteSrc: "./assets/chicken_brown.png" },
+    black: { id: "black", label: "Black Chicken", comment: "black inside", spriteSrc: "./assets/chicken_ukokkei.png" }
   };
 
   const DUCK_SUBKINDS = {
-    normal: { id: "normal", label: "Normal Duck", spriteSrc: "./assets/duck_normal.png" }
+    normal: { id: "normal", label: "Duck", comment: "no duck from nanjing", spriteSrc: "./assets/duck_normal.png" }
   };
 
-  const jimusho = { x: 10, y: 50, w: 330, h: 200 };
-  const barn = { x: 380, y: 160, w: 180, h: 90 };
-  const truck = { x: 800, y: 156, w: 138, h: 112 };
+  const jimusho = { x: 10, y: 35, w: 330, h: 200 };
+  const barn = { x: 380, y: 145, w: 180, h: 90 };
+  const truck = { x: 800, y: 176, w: 95, h: 59 };
   const farm = { x: 0, y: 230, w: 960, h: 370 };
 
   const top_button = {
@@ -193,7 +258,7 @@
 
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
-  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = true;
 
   const cardScrimEl = document.getElementById("cardScrim");
   const buildingCardEl = document.getElementById("buildingCard");
@@ -207,32 +272,32 @@
   const topMoneyImage = new Image();
   topMoneyImage.src = "./assets/logo_money.png";
   topMoneyImage.onload = () => render();
-  topMoneyImage.onerror = () => console.error("Failed to load image: ./assets/logo_money.png");
+  topMoneyImage.onerror = () => console.error("Failed to load image:" + topMoneyImage.src);
 
   const topPigImage = new Image();
   topPigImage.src = "./assets/logo_pig.png";
   topPigImage.onload = () => render();
-  topPigImage.onerror = () => console.error("Failed to load image: ./assets/logo_pig.png");
+  topPigImage.onerror = () => console.error("Failed to load image:" + topPigImage.src);
 
   const topCowImage = new Image();
   topCowImage.src = "./assets/logo_cow.png";
   topCowImage.onload = () => render();
-  topCowImage.onerror = () => console.error("Failed to load image: ./assets/logo_cow.png");
+  topCowImage.onerror = () => console.error("Failed to load image:" + topCowImage.src);
 
   const topDuckImage = new Image();
   topDuckImage.src = "./assets/logo_duck.png";
   topDuckImage.onload = () => render();
-  topDuckImage.onerror = () => console.error("Failed to load image: ./assets/logo_duck.png");
+  topDuckImage.onerror = () => console.error("Failed to load image:" + topDuckImage.src);
 
   const topChickenImage = new Image();
   topChickenImage.src = "./assets/logo_chicken.png";
   topChickenImage.onload = () => render();
-  topChickenImage.onerror = () => console.error("Failed to load image: ./assets/logo_chicken.png");
+  topChickenImage.onerror = () => console.error("Failed to load image:" + topChickenImage.src);
 
   const cornImage = new Image();
   cornImage.src = FOOD_TYPES.corn.spriteSrc;
   cornImage.onload = () => render();
-  cornImage.onerror = () => console.error("Failed to load image: ./assets/food_corn.png");
+  cornImage.onerror = () => console.error("Failed to load image:" + cornImage.src);
 
   const carrotImage = new Image();
   carrotImage.src = FOOD_TYPES.carrot.spriteSrc;
@@ -242,37 +307,42 @@
   const cabbageImage = new Image();
   cabbageImage.src = FOOD_TYPES.cabbage.spriteSrc;
   cabbageImage.onload = () => render();
-  cabbageImage.onerror = () => console.error("Failed to load image: ./assets/food_cabbage.png");
+  cabbageImage.onerror = () => console.error("Failed to load image:" + cabbageImage.src);
 
   const kabuImage = new Image();
   kabuImage.src = FOOD_TYPES.kabu.spriteSrc;
   kabuImage.onload = () => render();
-  kabuImage.onerror = () => console.error("Failed to load image: ./assets/food_kabu.png");
+  kabuImage.onerror = () => console.error("Failed to load image:" + kabuImage.src);
 
   const sweetpotatoImage = new Image();
   sweetpotatoImage.src = FOOD_TYPES.sweetpotato.spriteSrc;
   sweetpotatoImage.onload = () => render();
-  sweetpotatoImage.onerror = () => console.error("Failed to load image: ./assets/food_sweetpotato.png");
+  sweetpotatoImage.onerror = () => console.error("Failed to load image:" + sweetpotatoImage.src);
 
   const appleImage = new Image();
   appleImage.src = FOOD_TYPES.apple.spriteSrc;
   appleImage.onload = () => render();
-  appleImage.onerror = () => console.error("Failed to load image: ./assets/food_apple.png");
+  appleImage.onerror = () => console.error("Failed to load image:" + appleImage.src);
+
+  const poopImage = new Image();
+  poopImage.src = "./assets/poop_mark.png";
+  poopImage.onload = () => render();
+  poopImage.onerror = () => console.error("Failed to load image:" + poopImage.src);
 
   const highlightImage = new Image();
   highlightImage.src = "./assets/highlight_mark.png";
   highlightImage.onload = () => render();
-  highlightImage.onerror = () => console.error("Failed to load image: ./assets/highlight_mark.png");
+  highlightImage.onerror = () => console.error("Failed to load image:" + highlightImage.src);
 
   const sleepMarkImage = new Image();
   sleepMarkImage.src = "./assets/sleep_mark.png";
   sleepMarkImage.onload = () => render();
-  sleepMarkImage.onerror = () => console.error("Failed to load image: ./assets/sleep_mark.png");
+  sleepMarkImage.onerror = () => console.error("Failed to load image:" + sleepMarkImage.src);
 
   const truckImage = new Image();
   truckImage.src = "./assets/truck_kcar.png";
   truckImage.onload = () => render();
-  truckImage.onerror = () => console.error("Failed to load image: ./assets/truck_kcar.png");
+  truckImage.onerror = () => console.error("Failed to load image:" + truckImage.src);
 
   const pigImages = {};
   for (const id of Object.keys(PIG_SUBKINDS)) {
@@ -304,22 +374,22 @@
   const duckImage = new Image();
   duckImage.src = "./assets/duck_normal.png";
   duckImage.onload = () => render();
-  duckImage.onerror = () => console.error("Failed to load image: ./assets/duck_normal.png");
+  duckImage.onerror = () => console.error("Failed to load image:" + duckImage.src);
 
   const skyImage = new Image();
   skyImage.src = "./assets/bg_sky_normal.png";
   skyImage.onload = () => render();
-  skyImage.onerror = () => console.error("Failed to load image: ./assets/bg_sky_normal.png");
+  skyImage.onerror = () => console.error("Failed to load image:" + skyImage.src);
 
   const farmBgImage = new Image();
   farmBgImage.src = "./assets/bg_grassland_normal.png";
   farmBgImage.onload = () => render();
-  farmBgImage.onerror = () => console.error("Failed to load image: ./assets/bg_grassland_normal.png");
+  farmBgImage.onerror = () => console.error("Failed to load image:" + farmBgImage.src);
 
   const fenceImage = new Image();
   fenceImage.src = "./assets/fence_wood.png";
   fenceImage.onload = () => render();
-  fenceImage.onerror = () => console.error("Failed to load image: ./assets/fence_wood.png");
+  fenceImage.onerror = () => console.error("Failed to load image:" + fenceImage.src);
 
   const barnImage = new Image();
   barnImage.src = "./assets/building_barn.png";
@@ -327,7 +397,7 @@
     backgroundLayer = buildBackgroundLayer();
     render();
   };
-  barnImage.onerror = () => console.error("Failed to load image: ./assets/building_barn.png");
+  barnImage.onerror = () => console.error("Failed to load image:" + barnImage.src);
 
   const jimushoImage = new Image();
   jimushoImage.src = "./assets/building_jimusho.png";
@@ -335,7 +405,7 @@
     backgroundLayer = buildBackgroundLayer();
     render();
   };
-  jimushoImage.onerror = () => console.error("Failed to load image: ./assets/building_jimusho.png");
+  jimushoImage.onerror = () => console.error("Failed to load image:" + jimushoImage.src);
 
   backgroundLayer = buildBackgroundLayer();
 
@@ -394,7 +464,6 @@
 
     if (action === "select-animal-tab") {
       const kind = button.dataset.kind;
-      //if (!ANIMAL_TYPES[kind]) return;
       world.selectedAnimalKind = kind;
       cardBodyEl.innerHTML = renderJimushoCardHtml();
       return;
@@ -733,9 +802,7 @@
 
   function stepWorld(dtMs, stepEnd) {
     prepareHerdingLeaders();
-    for (const animal of getAllAnimals()) {
-      updatePig(animal, dtMs, stepEnd);
-    }
+    for (const animal of getAllAnimals()) {updatePig(animal, dtMs, stepEnd);};
   }
 
   function updatePig(pig, dtMs, stepEnd) {
@@ -754,9 +821,9 @@
 
     if (isPigSellPending(pig)) {
       pig.x = 825;
-      pig.y = 210;
-      pig.targetX = pig.x;
-      pig.targetY = pig.y;
+      pig.y = 200;
+      pig.targetX = pig.x - 150;
+      pig.targetY = pig.y + 100;
       return;
     }
 
@@ -771,32 +838,31 @@
     } else if (nearbyFood) {
       pig.targetX = nearbyFood.food.x;
       pig.targetY = nearbyFood.food.y;
-    } else if (behavior.mode === "herding") {
+    } else if (behavior.mode === "herding" && (pig.stage === 'Baby' || pig.stage === 'Young') && pig.kind !== "cow") {
+    //} else if (behavior.mode === "herding") {
       const leaderId = herdLeaderByPigId.get(pig.id);
       const leader = leaderId ? findAnyAnimalById(leaderId) : null;
-
       if (leader) {
         pig.wanderTimer -= dtSec;
-
         const targetTooFarFromLeader =
-          distance(pig.targetX, pig.targetY, leader.x, leader.y) > 90;
+          distance(pig.targetX, pig.targetY, leader.x, leader.y) > 120;
 
         if (
           pig.wanderTimer <= 0 ||
-          distance(pig.x, pig.y, pig.targetX, pig.targetY) < 10 ||
+          distance(pig.x, pig.y, pig.targetX, pig.targetY) < 6 ||
           targetTooFarFromLeader
         ) {
           chooseHerdTargetAroundPig(pig, leader);
         }
       } else {
         pig.wanderTimer -= dtSec;
-        if (pig.wanderTimer <= 0 || distance(pig.x, pig.y, pig.targetX, pig.targetY) < 10) {
+        if (pig.wanderTimer <= 0 || distance(pig.x, pig.y, pig.targetX, pig.targetY) < 6) {
           chooseWanderTarget(pig);
         }
       }
     } else {
       pig.wanderTimer -= dtSec;
-      if (pig.wanderTimer <= 0 || distance(pig.x, pig.y, pig.targetX, pig.targetY) < 10) {
+      if (pig.wanderTimer <= 0 || distance(pig.x, pig.y, pig.targetX, pig.targetY) < 6) {
         chooseWanderTarget(pig);
       }
     }
@@ -1151,7 +1217,8 @@
     herdLeaderIds.clear();
 
     const herdingPigs = getAllAnimals()
-      .filter((pig) => getPigHungerBehavior(pig).mode === "herding")
+      //.filter((pig) => getPigHungerBehavior(pig).mode === "herding")
+      .filter((pig) => getPigHungerBehavior(pig).mode === "herding" && pig.stage === "Adult")
       .slice()
       .sort((a, b) => {
         if (a.ageMinutes !== b.ageMinutes) return a.ageMinutes - b.ageMinutes;
@@ -1188,8 +1255,9 @@
   }
 
   function chooseHerdTargetAroundPig(pig, leader) {
+    //console.log(pig.id, leader.id);
     const angle = rand(0, Math.PI * 2);
-    const radius = pig.size + leader.size + rand(18, 56);
+    const radius = pig.size + leader.size + rand(10, 48);
 
     pig.targetX = clamp(
       leader.x + Math.cos(angle) * radius,
@@ -1203,7 +1271,7 @@
       farm.y + farm.h - pig.size
     );
 
-    pig.wanderTimer = rand(1.2, 3.0);
+    pig.wanderTimer = rand(1.0, 10.0);
   }
 
   function placeSelectedFood(x, y) {
@@ -1484,11 +1552,12 @@
 
     if (action === "buy-animal") {
       changed = buyAnimal(button.dataset.kind, button.dataset.subkind || null);
+      cardBodyEl.innerHTML = renderJimushoCardHtml();
     } else if (action === "sell-animal") {
       changed = sellAnimalById(button.dataset.kind, Number(button.dataset.animalId));
     } else if (action === "buy-food") {
-      console.log(button.dataset.subkind);
       changed = buyFoodPack(button.dataset.subkind);
+      cardBodyEl.innerHTML = renderJimushoCardHtml();
     } else if (action === "select-food") {
       const foodId = button.dataset.food;
       if (FOOD_TYPES[foodId]) {
@@ -1500,6 +1569,9 @@
       changed = sellAnimalById(button.dataset.kind, Number(button.dataset.animalId));
       shouldClose = true;
     } else if (action === "cancel-sell") {
+      const pig = findAnimalById(button.dataset.kind, Number(button.dataset.animalId));
+      pig.x = 825;
+      pig.y = 240;
       offlineInfo = "Sale canceled";
       shouldClose = true;
     }
@@ -1598,9 +1670,7 @@
 
     const { x, y } = getCanvasPointerPosition(event);
 
-    if (!dragState.moved && distance(x, y, dragState.startX, dragState.startY) > 6) {
-      dragState.moved = true;
-    }
+    if (!dragState.moved && distance(x, y, dragState.startX, dragState.startY) > 6) { dragState.moved = true; }
 
     dragPigToPointer(pig, x, y);
     render();
@@ -1608,7 +1678,6 @@
 
   function onCanvasPointerUp(event) {
     if (!dragState || event.pointerId !== dragState.pointerId) return;
-
     event.preventDefault();
     syncToNow(false);
 
@@ -1634,6 +1703,7 @@
         }
 
         offlineInfo = `${pig.name} moved.`;
+        world.selectedAnimalKind = null;
         persistNow();
       } else {
         pig.vx = 0;
@@ -1674,54 +1744,7 @@
     render();
   }
 
-  function updateHud() {
-    renderActiveCard();
-  }
-
-  /*function renderActiveCard() {
-    if (!openPanel) {
-      cardTitleEl.textContent = "";
-      cardSubtitleEl.textContent = "";
-      cardBodyEl.innerHTML = "";
-      return;
-    }
-
-    if (openPanel === "jimusho") {
-      cardTitleEl.textContent = "Farm Office";
-      cardSubtitleEl.textContent = "Check farm status, buy/sell food and animals.";
-      cardBodyEl.innerHTML = renderJimushoCardHtml();
-      return;
-    }
-
-    if (openPanel === "pig") {
-      const pig = findAnimalById(selectedAnimalKind, selectedPigId);
-      if (!pig) {
-        cardTitleEl.textContent = "";
-        cardSubtitleEl.textContent = "";
-        cardBodyEl.innerHTML = "";
-        return;
-      }
-
-      cardTitleEl.textContent = "";
-      cardSubtitleEl.textContent = "";
-      cardBodyEl.innerHTML = renderPigNoteHtml(pig);
-      return;
-    }
-
-    if (openPanel === "sellConfirm") {
-      const pig = findAnimalById(sellConfirmAnimalKind, sellConfirmPigId);
-      if (!pig) {
-        cardTitleEl.textContent = "";
-        cardSubtitleEl.textContent = "";
-        cardBodyEl.innerHTML = "";
-        return;
-      }
-
-      cardTitleEl.textContent = "";
-      cardSubtitleEl.textContent = "";
-      cardBodyEl.innerHTML = renderSellConfirmHtml(pig);
-    }
-  }*/
+  function updateHud() {renderActiveCard();}
 
   function renderActiveCard() {
     if (!openPanel) {
@@ -1737,20 +1760,15 @@
 
     if (openPanel === "jimusho") {
       if (lastPanelKey !== "jimusho") {
-        //cardTitleEl.textContent = "Farm Office";
-        //cardSubtitleEl.textContent = "Check farm status, buy/sell food and animals.";
         cardBodyEl.innerHTML = renderJimushoCardHtml();
-
         lastPanelKey = "jimusho";
         lastPigRenderKey = "";
       }
-
       return;
     }
 
     if (openPanel === "pig") {
       const pig = findAnimalById(selectedAnimalKind, selectedPigId);
-
       if (!pig) {
         cardTitleEl.textContent = "";
         cardSubtitleEl.textContent = "";
@@ -1760,14 +1778,11 @@
         return;
       }
 
-      const renderKey =
-        `${pig.id}_${Math.round(pig.hunger)}_${pig.feedCount}_${pig.stage}_${Math.floor(pig.ageMinutes)}`;
-
+      const renderKey = `${pig.id}_${Math.round(pig.hunger)}_${pig.feedCount}_${pig.stage}_${Math.floor(pig.ageMinutes)}`;
       if (renderKey !== lastPigRenderKey) {
         cardTitleEl.textContent = "";
         cardSubtitleEl.textContent = "";
         cardBodyEl.innerHTML = renderPigNoteHtml(pig);
-
         lastPigRenderKey = renderKey;
         lastPanelKey = "pig";
       }
@@ -1777,7 +1792,6 @@
 
     if (openPanel === "sellConfirm") {
       const pig = findAnimalById(sellConfirmAnimalKind, sellConfirmPigId);
-
       if (!pig) {
         cardTitleEl.textContent = "";
         cardSubtitleEl.textContent = "";
@@ -1788,12 +1802,10 @@
       }
 
       const key = `sell_${pig.id}`;
-
       if (lastPanelKey !== key) {
         cardTitleEl.textContent = "";
         cardSubtitleEl.textContent = "";
         cardBodyEl.innerHTML = renderSellConfirmHtml(pig);
-
         lastPanelKey = key;
         lastPigRenderKey = "";
       }
@@ -1817,11 +1829,11 @@
         <div class="sell-confirm-actions">
           ${sellable
         ? `
-                <button class="secondary" data-action="cancel-sell">No</button>
+                <button class="secondary" data-action="cancel-sell" data-kind="${pig.kind}" data-animal-id="${pig.id}">No</button>
                 <button class="danger" data-action="confirm-sell" data-kind="${pig.kind}" data-animal-id="${pig.id}">Yes</button>
               `
         : `
-                <button class="secondary" data-action="cancel-sell">OK</button>
+                <button class="secondary" data-action="cancel-sell" data-kind="${pig.kind}" data-animal-id="${pig.id}">OK</button>
               `
       }
         </div>
@@ -2022,7 +2034,7 @@
       `;
     }).join("");*/
     const tabs = allKinds.map(kind => {
-      const type = kind === "food" ? {label: "Food"} : ANIMAL_TYPES[kind];
+      const type = kind === "food" ? { label: "Food" } : ANIMAL_TYPES[kind];
       const active = kind === selectedKind ? "active" : "";
       return ` 
         <button type="button" class="animal-tab ${active}" data-action="select-animal-tab" data-kind="${kind}">
@@ -2036,9 +2048,8 @@
       return ` 
         <div class="jimusho-content"> 
           <p class="sheet-note"> 
-            <strong>Buy animals from here</strong>
+            <strong>Buy food from here</strong>
             <span style="float: right; display: flex; align-items: center; object-fit:contain;">
-              <strong>Currently have</strong>
               <img src="./assets/logo_money.png" alt="Arrow">
               <strong>            
                 ${world.money}
@@ -2060,7 +2071,6 @@
           <p class="sheet-note"> 
             <strong>Buy animals from here</strong>
             <span style="float: right; display: flex; align-items: center; object-fit:contain;">
-              <strong>Currently have</strong>
               <img src="./assets/logo_money.png" alt="Arrow">
               <strong>            
                 ${world.money}
@@ -2087,6 +2097,7 @@
 
   function renderBuyAnimalSubkindRowHtml(kind, subkind) {
     const type = ANIMAL_TYPES[kind];
+    const comment = (subkind.comment) ? subkind.comment : "-";
     const count = getAnimalCollection(kind).length;
     const price = getBuyAnimalPrice(kind);
     const buyDisabled = world.money < price || count >= type.maxCount ? "disabled" : "";
@@ -2099,11 +2110,11 @@
         <div class="row-header"> 
           <div class="row-title"> 
             <strong>${subkind.label}</strong> 
-            <strong> / Price: ${price} </strong> 
+            <div style="font-size: 12px">${comment}</div>
           </div>
         </div>
         <div class="animal-buy-actions"> 
-          <div class="price-tag"> 
+          <div class="price-tag" style="font-size: 26px"> 
             $${price} 
           </div> 
           <button data-action="buy-animal" data-kind="${kind}" data-subkind="${subkind.id}" ${buyDisabled}> 
@@ -2121,10 +2132,12 @@
 
   function renderBuyFoodSubkindRowHtml(kind, food) {
     const type = food.id;
+    const comment = (food.comment) ? food.comment : "-";
+    const maxCount = food.maxCount;
     const count = world.foodStock[type];
     const price = food.packCost;
-    //const buyDisabled = world.money < price || count >= type.maxCount ? "disabled" : "";
-    const buyDisabled = world.money < price ? "disabled" : "";
+    const buyDisabled = world.money < price || count >= maxCount ? "disabled" : "";
+    //const buyDisabled = world.money < price ? "disabled" : "";
     return `
     <div class="sheet-row animal-buy-row"> 
       <div class="animal-buy-image"> 
@@ -2133,13 +2146,16 @@
       <div class="animal-buy-info"> 
         <div class="row-header"> 
           <div class="row-title"> 
-            <strong>${food.label}</strong> 
-            <strong> / Price: ${price} </strong> 
+            <strong>${food.label}</strong>
+            <div style="font-size: 12px">${comment}</div>
           </div>
         </div>
         <div class="animal-buy-actions"> 
-          <div class="price-tag"> 
-            $${price} 
+          <div class="price-tag" style="font-size: 26px"> 
+            $${price}
+          </div>
+          <div class="price-tag" style="font-size: 16px"> 
+            for ${food.packQty} ps
           </div> 
           <button data-action="buy-food" data-kind="${kind}" data-subkind="${food.id}" ${buyDisabled}> 
             <img src="./assets/buy_mark.png" alt="Buy" />
@@ -2307,14 +2323,10 @@
   }
 
   function drawPoop(poop) {
-    drawShadow(poop.x, poop.y + 7, 12, 5, "rgba(0,0,0,0.18)");
-    drawTileSpriteCentered(ctx, sprites.tiles.ids.poop, poop.x, poop.y, 22);
-
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(poop.x, poop.y, poop.size + 8, 0, Math.PI * 2);
-    ctx.stroke();
+    drawShadow(poop.x, poop.y + 7, 10, 5, "rgba(0,0,0,0.18)");
+    if (!poopImage) return;
+    const drawSize = 16
+    ctx.drawImage(poopImage, poop.x - drawSize / 2, poop.y - drawSize / 2, drawSize, drawSize)
   }
 
   function getPigShadowColor(pig) {
@@ -2445,19 +2457,14 @@
 
     const drawH = 72;
     const drawW = Math.round(drawH * (fenceImage.naturalWidth / fenceImage.naturalHeight));
-    const y = rect.y - Math.round(drawH * 0.55);
+    const y = rect.y - Math.round(drawH * 0.95);
     const startX = rect.x;
     const endX = rect.x + rect.w;
-
     c.save();
-    c.beginPath();
-    c.rect(startX, y, rect.w, drawH);
-    c.clip();
-
-    for (let x = startX; x < endX; x += drawW - 1) {
-      c.drawImage(fenceImage, x, y, drawW, drawH);
-    }
-
+    //c.beginPath();
+    //c.rect(startX, y, rect.w, drawH);
+    //c.clip();
+    for (let x = startX; x < endX; x += drawW - 1) { c.drawImage(fenceImage, x, y, drawW, drawH) };
     c.restore();
   }
 
@@ -2639,7 +2646,10 @@
   }
 
   function findAnimalById(kind, id) {
-    return getAnimalCollection(kind).find((item) => item.id === id) || null;
+    const collection = getAnimalCollection(kind);
+    const animal = collection.find((item) => item.id === id);
+    return (animal) ? animal : null;
+    //return getAnimalCollection(kind).find((item) => item.id === id) || null;
   }
 
   function findAnyAnimalById(id) {

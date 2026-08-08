@@ -13,7 +13,8 @@
   --card-border: #294056;
   --success: #2a9d8f;
   --shadow: rgba(0, 0, 0, 0.26);
-  --paper-font: "Arial Rounded MT Bold", "Trebuchet MS", "Verdana", sans-serif;
+  /*--paper-font: "Arial Rounded MT Bold", "Trebuchet MS", "Verdana", sans-serif;*/
+  --paper-font: "Comic Sans MS", cursiva;
 }
 
 * {
@@ -27,7 +28,8 @@ body {
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /*font-family: "Arial Rounded MT Bold", "Trebuchet MS", "Verdana", sans-serif;*/
+  font-family: "Comic Sans MS", cursiva;
   color: var(--text);
   background:
     radial-gradient(circle at top, #2b4966 0%, #1d2d3c 38%, #121921 100%);
@@ -260,9 +262,12 @@ button:disabled {
 
 .row-title {
   display: flex;
+  justify-content: space-between; /* Pushes items to opposite ends */
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  width: 100%; /* Ensure it takes full width */
+  padding-right: 10px;
 }
 
 .price-tag {
@@ -893,6 +898,7 @@ button:disabled {
   justify-content: flex-end;
   gap: 8px;
   width: 100%;
+  font-size: 18px;
 }
 
 .animal-buy-actions button {
